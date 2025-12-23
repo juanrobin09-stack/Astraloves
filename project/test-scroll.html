@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scroll Test - MySubscription Structure</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    /* Simulating MySubscription structure */
+    .container {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      background: #000;
+      z-index: 40;
+    }
+
+    .header {
+      flex-shrink: 0;
+      height: 64px;
+      backdrop-filter: blur(12px);
+      background: rgba(0, 0, 0, 0.6);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      color: white;
+    }
+
+    .scroll-content {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+    }
+
+    .inner-content {
+      max-width: 672px;
+      margin: 0 auto;
+      padding: 16px;
+      padding-bottom: 80px;
+    }
+
+    .card {
+      background: linear-gradient(to bottom right, rgba(31, 41, 55, 0.9), rgba(0, 0, 0, 0.9));
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 24px;
+      padding: 24px;
+      margin-bottom: 16px;
+      color: white;
+    }
+
+    .item {
+      background: rgba(31, 41, 55, 0.3);
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .badge {
+      background: linear-gradient(to right, #ef4444, #ec4899);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>← Mon abonnement</h1>
+      <div class="badge" style="margin-left: auto;">💎 Premium</div>
+    </div>
+
+    <!-- Scrollable Content -->
+    <div class="scroll-content">
+      <div class="inner-content">
+        <div class="card">
+          <h2 style="margin-bottom: 16px;">Mon Abonnement</h2>
+
+          <!-- Generate lots of items to test scroll -->
+          <div class="item">💬 Messages privés<span>Illimité ∞</span></div>
+          <div class="item">⭐ Messages Astra<span>40/40</span></div>
+          <div class="item">❤️ Swipes<span>Illimité ∞</span></div>
+          <div class="item">📸 Photos<span>6/10</span></div>
+          <div class="item">📝 Bio<span>150/500 car.</span></div>
+          <div class="item">🎥 Lives<span>5/sem</span></div>
+
+          <div style="margin-top: 24px; padding: 16px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 12px;">
+            <h4 style="margin-bottom: 12px;">À propos de ton abonnement</h4>
+            <p style="margin-bottom: 12px; font-size: 14px; color: #9ca3af;">
+              Ton abonnement Premium te donne accès à toutes les fonctionnalités premium de l'application.
+            </p>
+            <p style="margin-bottom: 12px; font-size: 14px; color: #9ca3af;">
+              Les limites quotidiennes se réinitialisent automatiquement chaque jour à minuit (heure locale).
+            </p>
+            <p style="font-size: 14px; color: #9ca3af;">
+              Tu peux modifier ou annuler ton abonnement à tout moment depuis cette page.
+            </p>
+          </div>
+
+          <!-- Extra content for testing scroll -->
+          <div style="margin-top: 24px;">
+            <h3 style="margin-bottom: 12px;">Test de scroll</h3>
+            <div class="item">Item 1</div>
+            <div class="item">Item 2</div>
+            <div class="item">Item 3</div>
+            <div class="item">Item 4</div>
+            <div class="item">Item 5</div>
+            <div class="item">Item 6</div>
+            <div class="item">Item 7</div>
+            <div class="item">Item 8</div>
+            <div class="item">Item 9</div>
+            <div class="item">Item 10</div>
+            <div class="item">Item 11</div>
+            <div class="item">Item 12</div>
+            <div class="item">Item 13</div>
+            <div class="item">Item 14</div>
+            <div class="item">Item 15 (dernier)</div>
+          </div>
+
+          <p style="text-align: center; color: #6b7280; font-size: 12px; margin-top: 24px;">
+            ✅ Si tu peux lire ce message, le scroll fonctionne correctement !
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Test scroll functionality
+    const scrollContainer = document.querySelector('.scroll-content');
+
+    scrollContainer.addEventListener('scroll', () => {
+      console.log('✅ Scroll detected! ScrollTop:', scrollContainer.scrollTop);
+    });
+
+    // Log initial state
+    console.log('📊 Initial state:');
+    console.log('- Container height:', scrollContainer.clientHeight);
+    console.log('- Content height:', scrollContainer.scrollHeight);
+    console.log('- Is scrollable:', scrollContainer.scrollHeight > scrollContainer.clientHeight);
+  </script>
+</body>
+</html>
