@@ -1,6 +1,6 @@
 [build]
   # Commande de build
-  command = "npm run build"
+  command = "npm ci && npm run build"
   # Dossier de publication (sortie de Vite)
   publish = "dist"
 
