@@ -2,7 +2,7 @@
   # Base directory : le dossier contenant package.json
   base = "project"
   # Commande de build
-  command = "npm run build"
+  command = "npm ci && npm run build"
   # Dossier de publication (sortie de Vite)
   publish = "project/dist"
   # Version de Node.js (LTS)
