@@ -1,7 +1,7 @@
 [build]
   base = "project"
   publish = "dist"
-  command = "rm -rf node_modules package-lock.json && npm install --force && npm run build"
+  command = "npm install && npm run build"
 
 [build.environment]
   NODE_VERSION = "20"

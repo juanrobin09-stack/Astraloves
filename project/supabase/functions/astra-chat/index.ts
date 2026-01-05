@@ -36,16 +36,22 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { messages, profile, memory } = await req.json();
+    const requestBody = await req.json();
+    const { messages, profile, memory } = requestBody;
 
-    console.log('[Astra Edge] Received chat request with', messages?.length || 0, 'messages');
+    console.log('[Astra Edge] Received chat request');
+    console.log('[Astra Edge] Messages count:', messages?.length || 0);
+    console.log('[Astra Edge] Profile:', profile ? 'present' : 'missing');
+    console.log('[Astra Edge] Has API key:', !!OPENAI_API_KEY);
 
     if (!OPENAI_API_KEY) {
-      throw new Error('OpenAI API key not configured');
+      console.error('[Astra Edge] OPENAI_API_KEY is not configured');
+      throw new Error('OpenAI API key not configured. Please set OPENAI_API_KEY in Supabase Edge Functions secrets.');
     }
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
-      throw new Error('Messages array is required');
+      console.error('[Astra Edge] Invalid messages:', messages);
+      throw new Error('Messages array is required and must not be empty');
     }
 
     const systemPrompt = `Tu es Astra, l'IA coach intégrée dans l'application de rencontre Astra. Tu aides les utilisateurs à réussir leurs rencontres SUR ASTRA UNIQUEMENT.
@@ -241,8 +247,8 @@ Tu es Astra : expert(e), empathique, intelligent(e), fier(e) de l'application, e
       }] : [])
     ];
 
-    console.log('[Astra Edge] Calling OpenAI API...');
-
+    console.log('[Astra Edge] Calling OpenAI API with', openaiMessages.length, 'messages');
+    
     const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -250,7 +256,7 @@ Tu es Astra : expert(e), empathique, intelligent(e), fier(e) de l'application, e
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'gpt-4o-mini', // Utiliser gpt-4o-mini qui est plus disponible et moins cher
         messages: openaiMessages,
         temperature: 0.8,
         max_tokens: 800,
@@ -261,15 +267,42 @@ Tu es Astra : expert(e), empathique, intelligent(e), fier(e) de l'application, e
 
     if (!openaiResponse.ok) {
       const errorText = await openaiResponse.text();
-      console.error('[Astra Edge] OpenAI API error:', errorText);
-      throw new Error(`OpenAI API error: ${openaiResponse.status}`);
+      let errorData;
+      try {
+        errorData = JSON.parse(errorText);
+      } catch {
+        errorData = { error: errorText };
+      }
+      console.error('[Astra Edge] OpenAI API error:', {
+        status: openaiResponse.status,
+        statusText: openaiResponse.statusText,
+        error: errorData
+      });
+      
+      if (openaiResponse.status === 401) {
+        throw new Error('OpenAI API key is invalid or expired');
+      } else if (openaiResponse.status === 429) {
+        throw new Error('OpenAI API rate limit exceeded. Please try again later.');
+      } else if (openaiResponse.status === 500) {
+        throw new Error('OpenAI API server error. Please try again later.');
+      } else {
+        throw new Error(`OpenAI API error (${openaiResponse.status}): ${errorData.error?.message || errorText}`);
+      }
     }
 
     const completion = await openaiResponse.json();
+    console.log('[Astra Edge] OpenAI response received');
+    
+    if (!completion.choices || !Array.isArray(completion.choices) || completion.choices.length === 0) {
+      console.error('[Astra Edge] Invalid OpenAI response structure:', completion);
+      throw new Error('Invalid response structure from OpenAI API');
+    }
+
     const assistantMessage = completion.choices[0]?.message;
 
     if (!assistantMessage || !assistantMessage.content) {
-      throw new Error('No message in OpenAI response');
+      console.error('[Astra Edge] No message content in OpenAI response:', completion);
+      throw new Error('No message content in OpenAI response');
     }
 
     // Filtrer toute mention d'applications concurrentes dans la réponse
@@ -286,12 +319,40 @@ Tu es Astra : expert(e), empathique, intelligent(e), fier(e) de l'application, e
       },
     );
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('[Astra Edge] Error:', error);
+    console.error('[Astra Edge] Error stack:', error?.stack);
+    console.error('[Astra Edge] Error name:', error?.name);
+    console.error('[Astra Edge] Error message:', error?.message);
+    
+    const errorMessage = error?.message || 'Internal server error';
+    const errorDetails = error?.toString() || 'Unknown error';
+    
+    // Créer un message d'erreur plus lisible
+    let userFriendlyMessage = errorMessage;
+    
+    if (errorMessage.includes('API key') || errorMessage.includes('OPENAI_API_KEY')) {
+      userFriendlyMessage = 'OpenAI API key not configured. Please set OPENAI_API_KEY in Supabase Edge Functions secrets.';
+    } else if (errorMessage.includes('401') || errorMessage.includes('Unauthorized')) {
+      userFriendlyMessage = 'OpenAI API key is invalid or expired. Please check your API key.';
+    } else if (errorMessage.includes('429') || errorMessage.includes('rate limit')) {
+      userFriendlyMessage = 'OpenAI API rate limit exceeded. Please try again later.';
+    } else if (errorMessage.includes('500')) {
+      userFriendlyMessage = 'OpenAI API server error. Please try again later.';
+    }
+    
+    console.error('[Astra Edge] Returning error response:', { 
+      errorMessage: userFriendlyMessage, 
+      errorDetails,
+      originalError: errorMessage
+    });
+    
     return new Response(
       JSON.stringify({
-        error: error.message || 'Internal server error',
-        details: error.toString()
+        error: userFriendlyMessage,
+        details: errorDetails,
+        type: error?.name || 'Error',
+        originalError: errorMessage
       }),
       {
         status: 500,
