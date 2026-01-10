@@ -14,7 +14,7 @@
 
 [build.environment]
   # Version Node.js (compatible avec le projet)
-  NODE_VERSION = "18"
+  NODE_VERSION = "20"
 
 # ═══════════════════════════════════════════════════════════════════════
 # SPA REDIRECTS - CRITICAL POUR REACT ROUTER
