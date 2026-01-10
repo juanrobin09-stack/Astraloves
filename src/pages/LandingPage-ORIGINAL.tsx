@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Sparkles, Heart, Star, Users, Zap } from 'lucide-react';
-import LoginForm from './LoginForm';
-import SignupForm from './SignupForm';
+import LoginForm from '@/components/LoginForm';
+import SignupForm from '@/components/SignupForm';
 
 interface LandingPageProps {
   onGetStarted: () => void;

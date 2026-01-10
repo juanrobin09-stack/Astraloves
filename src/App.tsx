@@ -1,13 +1,9 @@
-// ═══════════════════════════════════════════════════════════════════════
-// APP ROOT
-// ═══════════════════════════════════════════════════════════════════════
-
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useState } from 'react';
 import { useAuth } from './hooks/useAuth';
-import { authService } from './services/auth/authService';
 import MainLayout from './components/layout/MainLayout';
-import LoginPage from './pages/LoginPage';
+import LandingPage from './pages/LandingPage-ORIGINAL';
 import OnboardingPage from './pages/OnboardingPage';
 import UniversPage from './pages/UniversPage';
 import MessagesPage from './pages/MessagesPage';
@@ -21,6 +17,7 @@ const queryClient = new QueryClient();
 
 function AppRoutes() {
   const { user, profile, isLoading } = useAuth();
+  const [showAuth, setShowAuth] = useState(false);
 
   if (isLoading) {
     return (
@@ -30,21 +27,36 @@ function AppRoutes() {
     );
   }
 
+  // Pas connecté → Landing page
   if (!user) {
-    return <LoginPage />;
+    return (
+      <LandingPage
+        onGetStarted={() => setShowAuth(true)}
+        onLogin={() => setShowAuth(true)}
+        onNavigateLegal={(page) => console.log('Navigate to', page)}
+        onNavigate={(page) => console.log('Navigate to', page)}
+      />
+    );
   }
 
-  // Si user mais pas de profil après loading → Logout et retour login
-  if (!isLoading && user && !profile) {
-    console.error('User without profile - signing out');
-    authService.signOut();
-    return <LoginPage />;
+  // Connecté mais pas de profil → Problème, déconnecter
+  if (!profile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center cosmic-gradient">
+        <div className="text-center">
+          <div className="text-2xl font-display mb-4">⭐ ASTRA</div>
+          <p className="text-white/60">Erreur de chargement du profil...</p>
+        </div>
+      </div>
+    );
   }
 
-  if (profile && profile.onboarding_completed !== true) {
+  // Onboarding pas complété
+  if (profile.onboarding_completed !== true) {
     return <OnboardingPage />;
   }
 
+  // App principale
   return (
     <MainLayout>
       <Routes>
