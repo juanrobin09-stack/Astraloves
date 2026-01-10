@@ -437,36 +437,97 @@ const generateLocalAnalysis = (
 
 export const saveQuizResult = async (
   userId: string,
-  quiz: Quiz,
-  answers: QuizAnswer[],
-  analysis: AnalysisResult
+  quizIdOrQuiz: string | Quiz,
+  answersOrResult?: QuizAnswer[] | any,
+  analysisOrNothing?: AnalysisResult
 ): Promise<boolean> => {
   try {
-    const { error } = await supabase.from('quiz_results').insert({
+    // Déterminer quel format on a reçu
+    let quizId: string;
+    let quizName: string;
+    let resultData: any;
+
+    if (typeof quizIdOrQuiz === 'string') {
+      // Format: saveQuizResult(userId, quizId, resultData)
+      quizId = quizIdOrQuiz;
+      quizName = answersOrResult?.quiz_name || quizIdOrQuiz;
+      resultData = answersOrResult;
+    } else {
+      // Format: saveQuizResult(userId, quiz, answers, analysis)
+      quizId = quizIdOrQuiz.id;
+      quizName = quizIdOrQuiz.name || quizIdOrQuiz.title || quizIdOrQuiz.id;
+      
+      const answers = answersOrResult;
+      const analysis = analysisOrNothing;
+      
+      resultData = {
+        quiz_name: quizName,
+        result_title: analysis?.title,
+        result_subtitle: analysis?.subtitle,
+        result_data: {
+          analysis: analysis?.analysis,
+          strengths: analysis?.strengths,
+          challenges: analysis?.challenges,
+          recommendations: analysis?.recommendations,
+          compatibility: analysis?.compatibility
+        },
+        answers: answers,
+        percentage: analysis?.percentage
+      };
+    }
+
+    // Préparer l'objet pour insertion
+    const insertData: any = {
       user_id: userId,
-      quiz_id: quiz.id,
-      quiz_name: quiz.name,
-      result_title: analysis.title,
-      result_subtitle: analysis.subtitle,
-      result_data: {
-        analysis: analysis.analysis,
-        strengths: analysis.strengths,
-        challenges: analysis.challenges,
-        recommendations: analysis.recommendations,
-        compatibility: analysis.compatibility
-      },
-      answers: answers,
-      percentage: analysis.percentage
-    });
+      quiz_id: quizId,
+      quiz_name: resultData.quiz_name || quizName,
+      result_title: resultData.result_title || resultData.title || 'Résultat',
+      result_subtitle: resultData.result_subtitle || resultData.subtitle || '',
+      percentage: resultData.percentage || 0
+    };
+
+    // Gérer result_data
+    if (resultData.result_data) {
+      insertData.result_data = resultData.result_data;
+    } else if (resultData.analysis) {
+      insertData.result_data = {
+        analysis: resultData.analysis,
+        strengths: resultData.strengths,
+        challenges: resultData.challenges,
+        recommendations: resultData.recommendations,
+        compatibility: resultData.compatibility
+      };
+    }
+
+    // Gérer answers
+    if (resultData.answers) {
+      insertData.answers = resultData.answers;
+    }
+
+    // AI analyses
+    if (resultData.ai_analysis) {
+      insertData.ai_analysis = resultData.ai_analysis;
+    }
+    if (resultData.ai_analysis_advanced) {
+      insertData.ai_analysis_advanced = resultData.ai_analysis_advanced;
+    }
+    if (resultData.ai_analysis_elite) {
+      insertData.ai_analysis_elite = resultData.ai_analysis_elite;
+    }
+
+    console.log('[saveQuizResult] Insertion:', { quizId, userId, insertData });
+
+    const { error } = await supabase.from('quiz_results').insert(insertData);
 
     if (error) {
-      console.error('Error saving quiz result:', error);
+      console.error('[saveQuizResult] Error saving quiz result:', error);
       return false;
     }
 
+    console.log('[saveQuizResult] ✅ Résultat sauvegardé !');
     return true;
   } catch (error) {
-    console.error('Error in saveQuizResult:', error);
+    console.error('[saveQuizResult] Error in saveQuizResult:', error);
     return false;
   }
 };
