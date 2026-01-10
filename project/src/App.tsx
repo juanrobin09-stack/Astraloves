@@ -157,7 +157,9 @@ function App() {
   const [currentQuizResult, setCurrentQuizResult] = useState<any>(null);
 
   const handleNavigate = (newPage: string) => {
+    console.log('[APP] handleNavigate appelé avec:', newPage);
     startTransition(() => {
+      console.log('[APP] setPage appelé avec:', newPage);
       setPage(newPage as Page);
     });
   };
@@ -637,6 +639,7 @@ function App() {
     );
   }
 
+  console.log("[APP] Entrée dans le bloc questionnaires, page:", page);
   if (page === 'questionnaires') {
     return (
       <Suspense fallback={<LoadingSpinner />}>
@@ -1012,6 +1015,7 @@ function App() {
         )}
       </Suspense>
     );
+  console.log("[APP] ❌ Page non trouvée, page actuelle:", page);
   }
 
   return (
