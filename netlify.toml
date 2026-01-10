@@ -1,0 +1,59 @@
+# ═══════════════════════════════════════════════════════════════════════
+# NETLIFY CONFIGURATION - ASTRALOVES
+# ═══════════════════════════════════════════════════════════════════════
+
+[build]
+  # Commande de build
+  command = "npm run build"
+  
+  # Dossier de sortie (Vite build output)
+  publish = "dist"
+  
+  # Installer les dépendances
+  base = "/"
+
+[build.environment]
+  # Version Node.js (compatible avec le projet)
+  NODE_VERSION = "18"
+
+# ═══════════════════════════════════════════════════════════════════════
+# SPA REDIRECTS - CRITICAL POUR REACT ROUTER
+# ═══════════════════════════════════════════════════════════════════════
+
+[[redirects]]
+  # Toutes les routes → index.html (Single Page App)
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# ═══════════════════════════════════════════════════════════════════════
+# HEADERS - SÉCURITÉ & PERFORMANCE
+# ═══════════════════════════════════════════════════════════════════════
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Security headers
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    
+    # Cache control pour assets
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    # Cache long pour assets buildés (avec hash)
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# ═══════════════════════════════════════════════════════════════════════
+# ENVIRONMENT VARIABLES
+# À configurer dans: Site settings > Environment variables
+# ═══════════════════════════════════════════════════════════════════════
+
+# VITE_SUPABASE_URL=https://xxx.supabase.co
+# VITE_SUPABASE_ANON_KEY=eyJ...
+# VITE_OPENAI_API_KEY=sk-...
+# VITE_APP_URL=https://astraloves.netlify.app
