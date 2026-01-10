@@ -5,6 +5,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuth } from './hooks/useAuth';
+import { authService } from './services/auth/authService';
 import MainLayout from './components/layout/MainLayout';
 import LoginPage from './pages/LoginPage';
 import OnboardingPage from './pages/OnboardingPage';
@@ -33,15 +34,14 @@ function AppRoutes() {
     return <LoginPage />;
   }
 
-  if (!profile) {
-    return (
-      <div className="min-h-screen flex items-center justify-center cosmic-gradient">
-        <div className="text-2xl font-display animate-pulse">⭐ ASTRA</div>
-      </div>
-    );
+  // Si user mais pas de profil après loading → Logout et retour login
+  if (!isLoading && user && !profile) {
+    console.error('User without profile - logging out');
+    authService.logout();
+    return <LoginPage />;
   }
 
-  if (profile.onboarding_completed !== true) {
+  if (profile && profile.onboarding_completed !== true) {
     return <OnboardingPage />;
   }
 
