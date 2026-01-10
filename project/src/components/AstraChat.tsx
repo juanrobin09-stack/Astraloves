@@ -444,10 +444,9 @@ export default function AstraChat({ onNavigate }: AstraChatProps) {
   };
 
   const selectQuestionnaire = (questionnaireId: string) => {
-    console.log("[AstraChat] Questionnaire sélectionné:", questionnaireId);
-    console.log("[AstraChat] activeQuestionnaireId défini, menu fermé");
-    setActiveQuestionnaireId(questionnaireId);
-    setShowQuizMenu(false);
+    console.log("[AstraChat] Navigation vers questionnaires avec ID:", questionnaireId);
+    // Au lieu de gérer localement, naviguer vers la vraie page questionnaires
+    onNavigate('questionnaires');
   };
 
   const sendMessage = async () => {
@@ -592,17 +591,6 @@ export default function AstraChat({ onNavigate }: AstraChatProps) {
       setIsSending(false);
     }
   };
-
-  // Si un questionnaire est actif, afficher le composant PremiumQuestionnaireFlow
-  if (activeQuestionnaireId) {
-    return (
-      <PremiumQuestionnaireFlow
-        questionnaireId={activeQuestionnaireId}
-        onBack={() => setActiveQuestionnaireId(null)}
-      />
-    );
-  }
-
   // Afficher un loader pendant le chargement
   if (isLoadingMessages) {
     return (
