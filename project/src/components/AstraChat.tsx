@@ -6,6 +6,8 @@ import PremiumQuestionnaireFlow from './PremiumQuestionnaireFlow';
 import { useAstraChatLimit } from '../hooks/useAstraChatLimit';
 import ConversationsSidebar from './ConversationsSidebar';
 import * as ConversationsService from '../lib/astraConversationsService';
+import { useFeatureAccess } from '../hooks/useFeatureAccess';
+import FeatureLocked from './FeatureLocked';
 
 interface AstraChatProps {
   onNavigate: (page: string) => void;
