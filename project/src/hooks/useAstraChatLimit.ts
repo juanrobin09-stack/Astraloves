@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { getUserLimits, SubscriptionTier } from '../lib/subscriptionLimits';
+import { SubscriptionTier } from '../lib/subscriptionLimits';
 
 interface UseAstraChatLimitProps {
   userId?: string;
@@ -8,11 +8,8 @@ interface UseAstraChatLimitProps {
 }
 
 export function useAstraChatLimit({ userId, premiumTier }: UseAstraChatLimitProps) {
-  const tier = premiumTier || 'free';
-  const limits = getUserLimits(tier);
-  const limit = limits.astraMessagesPerDay;
-
   const [messagesUsed, setMessagesUsed] = useState(0);
+  const [limit, setLimit] = useState(10);
   const [canSend, setCanSend] = useState(true);
   const [loading, setLoading] = useState(true);
 
@@ -28,17 +25,26 @@ export function useAstraChatLimit({ userId, premiumTier }: UseAstraChatLimitProp
       return;
     }
 
-    // Charger le compteur depuis astra_profiles
-    const { data } = await supabase
-      .from('astra_profiles')
-      .select('daily_astra_messages')
-      .eq('id', userId)
-      .maybeSingle();
+    try {
+      // Utiliser la fonction RPC sécurisée
+      const { data, error } = await supabase.rpc('check_astra_limit', { p_user_id: userId });
 
-    const used = data?.daily_astra_messages || 0;
-    setMessagesUsed(used);
-    setCanSend(used < limit);
-    setLoading(false);
+      if (error) {
+        console.error('[useAstraChatLimit] RPC error:', error);
+        setLoading(false);
+        return;
+      }
+
+      if (data) {
+        setMessagesUsed(data.used || 0);
+        setLimit(data.limit || 10);
+        setCanSend(data.allowed ?? true);
+      }
+    } catch (err) {
+      console.error('[useAstraChatLimit] Error:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const sendMessage = async (message: string, profile: any, memory: any) => {
@@ -47,15 +53,7 @@ export function useAstraChatLimit({ userId, premiumTier }: UseAstraChatLimitProp
     }
 
     try {
-      // Increment counter in DB
-      const newCount = messagesUsed + 1;
-
-      await supabase
-        .from('astra_profiles')
-        .update({ daily_astra_messages: newCount })
-        .eq('id', userId);
-
-      // Call Astra Edge Function
+      // Call Astra Edge Function (l'incrémentation se fait côté serveur)
       const { data, error } = await supabase.functions.invoke('astra-chat', {
         body: {
           messages: [{ role: 'user', content: message }],
@@ -69,15 +67,20 @@ export function useAstraChatLimit({ userId, premiumTier }: UseAstraChatLimitProp
         throw error;
       }
 
+      // Vérifier si limite atteinte
+      if (data?.limitReached) {
+        setCanSend(false);
+        return { error: data.message || 'Limite atteinte' };
+      }
+
       if (!data || !data.message) {
         throw new Error('Pas de réponse de l\'API');
       }
 
-      // Update local state
-      setMessagesUsed(newCount);
-      setCanSend(newCount < limit);
+      // Rafraîchir le compteur depuis le serveur
+      await checkLimit();
 
-      return { response: data.message, used: newCount };
+      return { response: data.message, used: messagesUsed + 1 };
     } catch (error: any) {
       console.error('[useAstraChatLimit] Error:', error);
       return { error: error.message || 'Erreur API. Réessaie.' };
