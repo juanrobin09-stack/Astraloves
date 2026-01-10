@@ -1,6 +1,6 @@
 import { useState } from 'react';
+import { Star } from 'lucide-react';
 import { authService } from '@/services/auth/authService';
-import { useNavigate } from 'react-router-dom';
 
 export default function LoginPage() {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -8,7 +8,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,10 +17,8 @@ export default function LoginPage() {
     try {
       if (isSignUp) {
         await authService.signUp({ email, password });
-        // Signup successful - will trigger auth state change
       } else {
         await authService.signIn({ email, password });
-        // Login successful - will trigger auth state change
       }
     } catch (err: any) {
       setError(err.message || 'Une erreur est survenue');
@@ -33,64 +30,89 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen cosmic-gradient flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Logo & Title */}
+        {/* Logo animé */}
         <div className="text-center mb-8">
-          <div className="text-6xl mb-4 animate-pulse">⭐</div>
-          <h1 className="text-5xl font-display font-black mb-2 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-            ASTRALOVES
+          <div className="inline-block mb-4">
+            <Star 
+              className="w-16 h-16 animate-pulse" 
+              fill="#dc2626" 
+              strokeWidth={0}
+              style={{ 
+                filter: 'drop-shadow(0 0 15px #dc2626) drop-shadow(0 0 30px #dc2626)',
+                animation: 'spin 20s linear infinite'
+              }}
+            />
+          </div>
+          <h1 className="text-5xl font-bold mb-2 text-white">
+            ASTRA
           </h1>
-          <p className="text-white/70 text-lg">
-            Connexions cosmiques et rencontres éclairées
+          <p className="text-xl text-gray-300 mb-2">
+            Trouvez votre âme sœur
+          </p>
+          <p className="text-lg text-red-400">
+            grâce aux étoiles ✨
           </p>
         </div>
 
-        {/* Form Card */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 shadow-2xl border border-white/20">
+        {/* Card formulaire */}
+        <div className="bg-black/40 backdrop-blur-xl rounded-2xl p-8 shadow-2xl border border-red-500/20">
+          {/* Toggle Login/Signup */}
           <div className="flex gap-2 mb-6">
             <button
-              onClick={() => setIsSignUp(false)}
-              className={`flex-1 py-2 rounded-lg font-semibold transition-all ${
+              onClick={() => {
+                setIsSignUp(false);
+                setError('');
+              }}
+              className={`flex-1 py-3 rounded-xl font-semibold transition-all ${
                 !isSignUp
-                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
-                  : 'text-white/60 hover:text-white'
+                  ? 'bg-red-600 text-white shadow-lg shadow-red-500/50'
+                  : 'text-gray-400 hover:text-white'
               }`}
             >
               Connexion
             </button>
             <button
-              onClick={() => setIsSignUp(true)}
-              className={`flex-1 py-2 rounded-lg font-semibold transition-all ${
+              onClick={() => {
+                setIsSignUp(true);
+                setError('');
+              }}
+              className={`flex-1 py-3 rounded-xl font-semibold transition-all ${
                 isSignUp
-                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
-                  : 'text-white/60 hover:text-white'
+                  ? 'bg-red-600 text-white shadow-lg shadow-red-500/50'
+                  : 'text-gray-400 hover:text-white'
               }`}
             >
               Inscription
             </button>
           </div>
 
+          {/* Formulaire */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Email</label>
+              <label className="block text-sm font-medium mb-2 text-gray-300">
+                Email
+              </label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 focus:border-purple-400 focus:outline-none text-white placeholder-white/40"
-                placeholder="ton@email.com"
+                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-red-500 focus:outline-none text-white placeholder-gray-500"
+                placeholder="votre@email.com"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">Mot de passe</label>
+              <label className="block text-sm font-medium mb-2 text-gray-300">
+                Mot de passe
+              </label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
-                className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 focus:border-purple-400 focus:outline-none text-white placeholder-white/40"
+                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-red-500 focus:outline-none text-white placeholder-gray-500"
                 placeholder="••••••••"
               />
             </div>
@@ -104,33 +126,28 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 rounded-xl font-semibold bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3 rounded-xl font-semibold bg-red-600 hover:bg-red-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-red-500/30"
             >
               {loading ? 'Chargement...' : isSignUp ? "Créer mon compte" : "Se connecter"}
             </button>
           </form>
-
-          <p className="text-center text-white/60 text-sm mt-6">
-            {isSignUp ? "Déjà inscrit ?" : "Pas encore de compte ?"}{' '}
-            <button
-              onClick={() => {
-                setIsSignUp(!isSignUp);
-                setError('');
-              }}
-              className="text-purple-400 hover:text-purple-300 font-semibold"
-            >
-              {isSignUp ? "Se connecter" : "Créer un compte"}
-            </button>
-          </p>
         </div>
 
         {/* Features */}
-        <div className="mt-8 text-center space-y-2 text-white/60 text-sm">
+        <div className="mt-8 text-center space-y-2 text-gray-400 text-sm">
           <p>✨ Compatibilité astrologique</p>
           <p>🌟 Thème astral complet</p>
-          <p>💫 Coach IA personnalisé</p>
+          <p>💫 Coach IA Astra</p>
         </div>
       </div>
+
+      {/* Animation CSS pour rotation */}
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 }
