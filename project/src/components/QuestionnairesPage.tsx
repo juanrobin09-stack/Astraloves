@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { ArrowLeft, Sparkles, ChevronRight, Check, RotateCcw } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { usePremiumStatus } from '../hooks/usePremiumStatus';
-import { useQuizAccess } from '../hooks/useQuizAccess';
 import { getUserQuizResults } from '../lib/quizResultsService';
+import { quizzes, Quiz, getQuizById } from '../data/quizData';
 import QuizTestPage from './QuizTestPage';
 import QuizResultsPage from './QuizResultsPage';
 
@@ -12,25 +12,9 @@ type QuestionnairesPageProps = {
   onNavigate?: (page: string, data?: any) => void;
 };
 
-// Descriptions premium pour chaque questionnaire
-const premiumDescriptions: Record<string, string> = {
-  'first_impression': "Ce que les autres perçoivent de toi avant même que tu ne parles.",
-  'seduction': "Ton langage silencieux. Ce qui attire sans que tu le saches.",
-  'attachment': "Comment tu te lies. Et pourquoi certaines relations t'échappent.",
-  'archetype': "Le schéma profond qui guide tes choix romantiques.",
-  'astral': "Ta configuration céleste. Calculée à la minute près.",
-  'compatibility': "Les dynamiques invisibles entre deux personnalités.",
-  'love_language': "Comment tu donnes et reçois l'amour.",
-  'emotional_intelligence': "Ta capacité à lire et naviguer les émotions."
-};
-
-// Questionnaires avec analyse IA
-const aiAnalysisQuizzes = ['attachment', 'archetype', 'astral', 'compatibility', 'emotional_intelligence'];
-
 export default function QuestionnairesPage({ onBack, onNavigate }: QuestionnairesPageProps) {
   const { user } = useAuth();
   const { tier, loading: premiumLoading } = usePremiumStatus();
-  const { categorizedQuizzes, checkAccess } = useQuizAccess();
   const [completedQuizzes, setCompletedQuizzes] = useState<any[]>([]);
   const [activeView, setActiveView] = useState<'list' | 'test' | 'results'>('list');
   const [activeQuizId, setActiveQuizId] = useState<string | null>(null);
@@ -44,6 +28,14 @@ export default function QuestionnairesPage({ onBack, onNavigate }: Questionnaire
     if (!user) return;
     const results = await getUserQuizResults(user.id);
     setCompletedQuizzes(results);
+  };
+
+  // Vérifier l'accès selon le tier
+  const checkAccess = (quiz: Quiz): boolean => {
+    if (quiz.requiredTier === 'free') return true;
+    if (quiz.requiredTier === 'premium' && (tier === 'premium' || tier === 'premium_elite')) return true;
+    if (quiz.requiredTier === 'premium_elite' && tier === 'premium_elite') return true;
+    return false;
   };
 
   const handleNavigate = (page: string, data?: any) => {
@@ -107,27 +99,15 @@ export default function QuestionnairesPage({ onBack, onNavigate }: Questionnaire
     );
   }
 
-  // Combiner tous les quizzes
-  const allQuizzes = [
-    ...categorizedQuizzes.free.quizzes,
-    ...categorizedQuizzes.premium.quizzes,
-    ...categorizedQuizzes.elite.quizzes
-  ];
+  // Séparer les quiz en Fondations et Analyses Approfondies
+  const foundationQuizzes = quizzes.filter(q => q.category === 'Fondation');
+  const advancedQuizzes = quizzes.filter(q => q.category !== 'Fondation');
 
-  // Séparer en Fondations et Analyses Approfondies
-  const foundationQuizzes = allQuizzes.filter(q => 
-    ['first_impression', 'seduction'].includes(q.id)
-  );
-  const advancedQuizzes = allQuizzes.filter(q => 
-    !['first_impression', 'seduction'].includes(q.id)
-  );
-
-  const renderQuizCard = (quiz: any) => {
+  const renderQuizCard = (quiz: Quiz) => {
     const completed = completedQuizzes.find(q => q.quiz_id === quiz.id);
-    const canAccess = checkAccess(quiz.id);
+    const canAccess = checkAccess(quiz);
     const isHovered = hoveredCard === quiz.id;
-    const hasAI = aiAnalysisQuizzes.includes(quiz.id);
-    const description = premiumDescriptions[quiz.id] || quiz.description;
+    const hasAI = quiz.isAIAnalysis;
 
     return (
       <div
@@ -147,7 +127,7 @@ export default function QuestionnairesPage({ onBack, onNavigate }: Questionnaire
           if (!canAccess) {
             handleNavigate('subscriptions');
           } else if (completed) {
-            // Voir les résultats ou refaire
+            // Option de refaire ou voir résultats
           } else {
             handleNavigate('quiz-test', { quizId: quiz.id });
           }
@@ -229,7 +209,7 @@ export default function QuestionnairesPage({ onBack, onNavigate }: Questionnaire
               lineHeight: 1.5,
               margin: '0 0 12px 0'
             }}>
-              {description}
+              {quiz.description}
             </p>
 
             {/* Métadonnées */}
@@ -238,7 +218,7 @@ export default function QuestionnairesPage({ onBack, onNavigate }: Questionnaire
               fontSize: '12px',
               margin: 0
             }}>
-              {quiz.questions_count} questions · ~{quiz.duration}
+              {quiz.questionCount} questions
             </p>
           </div>
 

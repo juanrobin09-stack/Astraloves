@@ -1,11 +1,11 @@
 /**
  * SYSTÈME DE CONTRÔLE D'ACCÈS AUX QUESTIONNAIRES
- *
- * Gère les permissions d'accès aux questionnaires selon le niveau d'abonnement
+ * Version Premium - Descriptions introspectives
  */
 
 export type SubscriptionTier = 'free' | 'premium' | 'elite';
 export type AccessLevel = 'free' | 'premium' | 'elite';
+export type QuizCategory = 'foundations' | 'advanced';
 
 export interface QuizAccessConfig {
   id: string;
@@ -18,79 +18,93 @@ export interface QuizAccessConfig {
   badge?: string | null;
   featured?: boolean;
   order: number;
+  category: QuizCategory;
+  hasAI: boolean;
 }
 
 /**
- * Configuration complète des questionnaires avec niveaux d'accès
+ * Configuration complète des questionnaires avec descriptions premium
  */
 export const QUIZZES_ACCESS_CONFIG: Record<string, QuizAccessConfig> = {
   'first_impression': {
     id: 'first_impression',
     name: 'Première Impression',
-    emoji: '👋',
+    emoji: '○',
     access_level: 'free',
-    duration: '5 min',
+    duration: '~5 min',
     questions_count: 10,
-    description: 'Découvrez l\'image que vous projetez lors des premières rencontres',
+    description: 'Ce que les autres perçoivent de toi avant même que tu ne parles.',
     badge: null,
-    featured: true,
-    order: 1
+    featured: false,
+    order: 1,
+    category: 'foundations',
+    hasAI: false
   },
   'seduction': {
     id: 'seduction',
     name: 'Test de Séduction',
-    emoji: '💋',
+    emoji: '○',
     access_level: 'free',
-    duration: '7 min',
+    duration: '~7 min',
     questions_count: 12,
-    description: 'Identifiez vos atouts et votre style de séduction unique',
+    description: 'Ton langage silencieux. Ce qui attire sans que tu le saches.',
     badge: null,
-    featured: true,
-    order: 2
+    featured: false,
+    order: 2,
+    category: 'foundations',
+    hasAI: false
   },
   'attachment': {
     id: 'attachment',
-    name: 'Style d\'attachement',
-    emoji: '💕',
+    name: 'Style d\'Attachement',
+    emoji: '◐',
     access_level: 'premium',
     duration: '~10 min',
     questions_count: 14,
-    description: 'Découvre ton style d\'attachement en 14 questions',
-    badge: 'PREMIUM',
-    order: 3
+    description: 'Comment tu te lies. Et pourquoi certaines relations t\'échappent.',
+    badge: null,
+    order: 3,
+    category: 'advanced',
+    hasAI: true
   },
   'archetype': {
     id: 'archetype',
-    name: 'Archétype amoureux',
-    emoji: '🌟',
+    name: 'Archétype Amoureux',
+    emoji: '◐',
     access_level: 'premium',
-    duration: '~15 min',
+    duration: '~12 min',
     questions_count: 14,
-    description: 'Découvre ton archétype amoureux parmi 12 profils',
-    badge: 'PREMIUM',
-    order: 4
+    description: 'Le schéma profond qui guide tes choix romantiques.',
+    badge: null,
+    order: 4,
+    category: 'advanced',
+    hasAI: true
   },
   'compatibility': {
     id: 'compatibility',
-    name: 'Test de compatibilité',
-    emoji: '❤️',
+    name: 'Test de Compatibilité',
+    emoji: '◐',
     access_level: 'premium',
-    duration: '~8 min',
+    duration: '~6 min',
     questions_count: 8,
-    description: 'Découvre ton profil relationnel en 8 questions rapides',
-    badge: 'PREMIUM',
-    order: 5
+    description: 'Les dynamiques invisibles entre deux personnalités.',
+    badge: null,
+    order: 5,
+    category: 'advanced',
+    hasAI: true
   },
   'astral': {
     id: 'astral',
-    name: 'Thème astral complet',
-    emoji: '✨',
+    name: 'Thème Astral Complet',
+    emoji: '◐',
     access_level: 'elite',
-    duration: '~12 min',
-    questions_count: 15,
-    description: 'Analyse astrologique complète de ta personnalité amoureuse',
-    badge: 'PREMIUM+',
-    order: 6
+    duration: '~10 min',
+    questions_count: 12,
+    description: 'Ta configuration intérieure. Une astrologie de l\'âme, pas des étoiles.',
+    badge: null,
+    order: 6,
+    category: 'advanced',
+    hasAI: true
   }
 };
 
@@ -121,6 +135,7 @@ export function hasAccessToQuiz(
 
 /**
  * Obtient la raison du verrouillage d'un questionnaire
+ * Version sobre sans vocabulaire marketing
  */
 export function getLockReason(
   userTier: SubscriptionTier | null | undefined,
@@ -135,14 +150,15 @@ export function getLockReason(
     return null;
   }
 
+  // Messages sobres, pas marketing
   if (tier === 'free' && quiz.access_level === 'premium') {
-    return 'Débloquer avec Premium';
+    return 'Profil avancé requis';
   }
   if (tier === 'free' && quiz.access_level === 'elite') {
-    return 'Débloquer avec Elite';
+    return 'Profil complet requis';
   }
   if (tier === 'premium' && quiz.access_level === 'elite') {
-    return 'Passer à Elite';
+    return 'Profil complet requis';
   }
 
   return 'Accès restreint';
@@ -150,6 +166,7 @@ export function getLockReason(
 
 /**
  * Obtient le badge à afficher pour un questionnaire
+ * Version minimaliste
  */
 export function getQuizBadge(
   userTier: SubscriptionTier | null | undefined,
@@ -163,26 +180,23 @@ export function getQuizBadge(
 
   // Badge complété prioritaire
   if (isCompleted) {
-    return { text: '✓ COMPLÉTÉ', type: 'completed' };
+    return { text: 'Complété', type: 'completed' };
   }
 
   const hasAccess = hasAccessToQuiz(tier, quizId);
 
-  // Utilisateur a accès
+  // Utilisateur a accès - pas de badge criard
   if (hasAccess && quiz.access_level !== 'free') {
-    if (tier === 'elite') {
-      return { text: '👑 INCLUS', type: 'included-elite' };
-    }
-    return { text: '💎 INCLUS', type: 'included-premium' };
+    return null; // Pas de badge "INCLUS" criard
   }
 
-  // Utilisateur n'a pas accès
+  // Utilisateur n'a pas accès - badges discrets
   if (!hasAccess) {
     if (quiz.access_level === 'elite') {
-      return { text: '👑 ELITE', type: 'locked-elite' };
+      return { text: 'Profil complet', type: 'locked-elite' };
     }
     if (quiz.access_level === 'premium') {
-      return { text: '💎 PREMIUM', type: 'locked-premium' };
+      return { text: 'Profil avancé', type: 'locked-premium' };
     }
   }
 
@@ -210,7 +224,8 @@ export function getQuizzesWithAccess(
 }
 
 /**
- * Groupe les questionnaires par catégorie d'accès
+ * Groupe les questionnaires par catégorie
+ * Nouvelle structure : Fondations vs Analyses Approfondies
  */
 export function groupQuizzesByCategory(
   userTier: SubscriptionTier | null | undefined,
@@ -220,30 +235,49 @@ export function groupQuizzesByCategory(
 
   const categories = {
     free: {
-      title: 'Questionnaires Gratuits',
-      subtitle: 'Découvre les bases de ton profil',
-      icon: '📋',
-      quizzes: quizzes.filter(q => q.access_level === 'free')
+      title: 'Fondations',
+      subtitle: 'Les bases de ta personnalité relationnelle',
+      icon: '',
+      quizzes: quizzes.filter(q => q.category === 'foundations')
     },
     premium: {
-      title: userTier === 'premium' || userTier === 'elite'
-        ? 'Analyses Premium'
-        : '💎 Analyses Premium',
-      subtitle: 'Approfondis ta connaissance de toi-même',
-      icon: '💎',
-      quizzes: quizzes.filter(q => q.access_level === 'premium')
+      title: 'Analyses Approfondies',
+      subtitle: 'Modélisation avancée par intelligence artificielle',
+      icon: '',
+      quizzes: quizzes.filter(q => q.category === 'advanced' && q.access_level === 'premium')
     },
     elite: {
-      title: userTier === 'elite'
-        ? 'Exclusif Elite'
-        : '👑 Exclusif Elite',
-      subtitle: 'Le summum de l\'analyse personnalisée',
-      icon: '👑',
-      quizzes: quizzes.filter(q => q.access_level === 'elite')
+      title: 'Analyses Approfondies',
+      subtitle: 'Modélisation avancée par intelligence artificielle',
+      icon: '',
+      quizzes: quizzes.filter(q => q.category === 'advanced' && q.access_level === 'elite')
     }
   };
 
   return categories;
+}
+
+/**
+ * Groupe les questionnaires pour la nouvelle UI
+ * Fondations + Analyses Approfondies (toutes combinées)
+ */
+export function groupQuizzesByNewCategories(
+  userTier: SubscriptionTier | null | undefined,
+  completedQuizIds: string[] = []
+) {
+  const quizzes = getQuizzesWithAccess(userTier, completedQuizIds);
+
+  return {
+    foundations: {
+      title: 'Fondations',
+      quizzes: quizzes.filter(q => q.category === 'foundations')
+    },
+    advanced: {
+      title: 'Analyses Approfondies',
+      subtitle: 'Modélisation avancée par intelligence artificielle',
+      quizzes: quizzes.filter(q => q.category === 'advanced')
+    }
+  };
 }
 
 /**
@@ -285,5 +319,22 @@ export function getUnlockedQuizzesByUpgrade(
 
   return Object.values(QUIZZES_ACCESS_CONFIG)
     .filter(quiz => newAccessLevels.includes(quiz.access_level))
+    .sort((a, b) => a.order - b.order);
+}
+
+/**
+ * Vérifie si un questionnaire utilise l'analyse IA
+ */
+export function hasAIAnalysis(quizId: string): boolean {
+  const quiz = QUIZZES_ACCESS_CONFIG[quizId];
+  return quiz?.hasAI || false;
+}
+
+/**
+ * Obtient tous les questionnaires avec analyse IA
+ */
+export function getAIQuizzes(): QuizAccessConfig[] {
+  return Object.values(QUIZZES_ACCESS_CONFIG)
+    .filter(quiz => quiz.hasAI)
     .sort((a, b) => a.order - b.order);
 }

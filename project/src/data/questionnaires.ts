@@ -9,1189 +9,1462 @@ export interface Question {
   scaleMax?: number;
   scaleLabels?: { min: string; max: string };
   category?: string;
+  element?: string; // Pour le thème astral
+}
+
+export interface Archetype {
+  id: string;
+  name: string;
+  description: string;
+  traits: string[];
 }
 
 export interface Questionnaire {
   id: string;
   title: string;
   description: string;
+  introduction: string;
   questions: Question[];
   analysisPrompt: string;
+  archetypes?: Archetype[];
+  resultStructure: {
+    title: string;
+    sections: string[];
+  };
   premium?: boolean;
   featured?: boolean;
+  hasAI?: boolean;
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// ARCHÉTYPES — PREMIÈRE IMPRESSION
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const firstImpressionArchetypes: Archetype[] = [
+  {
+    id: 'magnetic',
+    name: 'Le Magnétique',
+    description: 'Une présence qui attire sans effort, une gravité naturelle. Tu captes l\'attention avant même de parler.',
+    traits: ['Présence forte', 'Charisme naturel', 'Énergie captivante']
+  },
+  {
+    id: 'reserved',
+    name: 'Le Réservé',
+    description: 'Une distance élégante qui intrigue et protège. Tu ne te livres pas facilement, ce qui crée du mystère.',
+    traits: ['Discrétion', 'Élégance silencieuse', 'Protection naturelle']
+  },
+  {
+    id: 'mysterious',
+    name: 'Le Mystérieux',
+    description: 'Une opacité séduisante, difficile à lire. Les autres projettent sur toi ce qu\'ils veulent y voir.',
+    traits: ['Insondable', 'Fascinant', 'Complexe']
+  },
+  {
+    id: 'solar',
+    name: 'Le Solaire',
+    description: 'Une chaleur immédiate, une ouverture naturelle. Tu mets les autres à l\'aise instantanément.',
+    traits: ['Chaleureux', 'Accessible', 'Lumineux']
+  },
+  {
+    id: 'observer',
+    name: 'L\'Observateur',
+    description: 'Une présence en retrait mais perçante. Tu vois ce que les autres ne voient pas.',
+    traits: ['Perceptif', 'Analytique', 'Discret']
+  },
+  {
+    id: 'intense',
+    name: 'L\'Intense',
+    description: 'Une énergie forte, parfois intimidante. Ta présence ne laisse jamais indifférent.',
+    traits: ['Puissant', 'Marquant', 'Profond']
+  }
+];
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ARCHÉTYPES — SÉDUCTION
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const seductionArchetypes: Archetype[] = [
+  {
+    id: 'silent_magnetic',
+    name: 'Le Magnétique Silencieux',
+    description: 'Tu attires par la présence, pas par les mots. Ton silence est plus éloquent que les discours des autres.',
+    traits: ['Présence magnétique', 'Économie de mots', 'Puissance silencieuse']
+  },
+  {
+    id: 'subtle_player',
+    name: 'Le Joueur Subtil',
+    description: 'Tu maîtrises l\'art du non-dit et de la tension. La séduction est pour toi un jeu d\'échecs émotionnel.',
+    traits: ['Stratège', 'Maître du timing', 'Créateur de tension']
+  },
+  {
+    id: 'solar_direct',
+    name: 'Le Solaire Direct',
+    description: 'Tu séduis par la chaleur et l\'ouverture. Ta sincérité désarme et attire.',
+    traits: ['Authentique', 'Chaleureux', 'Direct']
+  },
+  {
+    id: 'intense_deep',
+    name: 'L\'Intense Profond',
+    description: 'Tu crées des connexions fortes, parfois trop vite. L\'intensité est ta signature.',
+    traits: ['Profond', 'Passionné', 'Absorbant']
+  },
+  {
+    id: 'mysterious_fleeting',
+    name: 'Le Mystérieux Fuyant',
+    description: 'Tu fascines par ce que tu ne montres pas. L\'inaccessibilité est ton arme.',
+    traits: ['Insaisissable', 'Fascinant', 'Distant']
+  },
+  {
+    id: 'equilibrist',
+    name: 'L\'Équilibriste',
+    description: 'Tu navigues entre distance et proximité avec aisance. L\'équilibre est ton art.',
+    traits: ['Adaptable', 'Équilibré', 'Fluide']
+  }
+];
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ARCHÉTYPES — ATTACHEMENT
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const attachmentArchetypes: Archetype[] = [
+  {
+    id: 'secure',
+    name: 'Sécure',
+    description: 'Capacité à être proche sans perdre son autonomie. Confiance naturelle dans le lien, confort avec l\'intimité et l\'indépendance.',
+    traits: ['Confiant', 'Équilibré', 'Stable émotionnellement']
+  },
+  {
+    id: 'anxious',
+    name: 'Anxieux-Préoccupé',
+    description: 'Besoin intense de proximité et de réassurance. Hypervigilance relationnelle, peur de l\'abandon qui colore les interactions.',
+    traits: ['Sensible au rejet', 'Besoin de proximité', 'Hypervigilant']
+  },
+  {
+    id: 'avoidant',
+    name: 'Évitant-Détaché',
+    description: 'Valorisation de l\'indépendance, inconfort avec l\'intimité profonde. Tendance à maintenir une distance émotionnelle protectrice.',
+    traits: ['Indépendant', 'Distant', 'Auto-suffisant']
+  },
+  {
+    id: 'disorganized',
+    name: 'Désorganisé-Craintif',
+    description: 'Oscillation entre désir de proximité et peur de la vulnérabilité. Conflit interne entre le besoin d\'amour et la peur d\'être blessé.',
+    traits: ['Ambivalent', 'Contradictoire', 'En quête']
+  }
+];
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ARCHÉTYPES — AMOUREUX
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const loveArchetypes: Archetype[] = [
+  {
+    id: 'soulmate',
+    name: 'L\'Âme Sœur',
+    description: 'Recherche de fusion totale, l\'amour comme miroir. Tu cherches quelqu\'un qui te comprenne sans mots.',
+    traits: ['Fusionnel', 'Romantique', 'En quête de miroir']
+  },
+  {
+    id: 'protector',
+    name: 'Le Protecteur',
+    description: 'Besoin de prendre soin ou d\'être protégé. L\'amour passe par la sécurité et le dévouement.',
+    traits: ['Dévoué', 'Protecteur', 'Sécurisant']
+  },
+  {
+    id: 'adventurer',
+    name: 'L\'Aventurier',
+    description: 'L\'amour comme découverte perpétuelle. Tu as besoin de nouveauté et d\'évolution constante.',
+    traits: ['Curieux', 'En mouvement', 'Épris de liberté']
+  },
+  {
+    id: 'tragic_romantic',
+    name: 'Le Romantique Tragique',
+    description: 'Attirance pour l\'intensité, même douloureuse. Les amours impossibles te fascinent.',
+    traits: ['Passionné', 'Mélancolique', 'Intense']
+  },
+  {
+    id: 'builder',
+    name: 'Le Bâtisseur',
+    description: 'L\'amour comme construction commune. Tu veux créer quelque chose de durable avec l\'autre.',
+    traits: ['Constructeur', 'Patient', 'Orienté futur']
+  },
+  {
+    id: 'free_electron',
+    name: 'L\'Électron Libre',
+    description: 'Besoin de liberté au sein même de l\'amour. Tu aimes mais refuses de t\'y perdre.',
+    traits: ['Indépendant', 'Libre', 'Autonome']
+  },
+  {
+    id: 'healer',
+    name: 'Le Guérisseur',
+    description: 'Attirance pour les âmes blessées. Tu veux réparer, soigner, transformer l\'autre.',
+    traits: ['Empathique', 'Réparateur', 'Sauveur']
+  },
+  {
+    id: 'seeker',
+    name: 'Le Chercheur',
+    description: 'L\'amour comme quête de sens. Tu cherches dans l\'autre une réponse à tes questions existentielles.',
+    traits: ['Philosophe', 'Profond', 'En quête de sens']
+  }
+];
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// QUESTIONNAIRES
+// ═══════════════════════════════════════════════════════════════════════════════
+
 export const questionnaires: Record<string, Questionnaire> = {
+  
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 1. PREMIÈRE IMPRESSION
+  // ═══════════════════════════════════════════════════════════════════════════
   'first_impression': {
     id: 'first_impression',
-    title: '👋 Première Impression',
-    description: 'Découvrez l\'image que vous projetez lors des premières rencontres',
+    title: 'Première Impression',
+    description: 'Ce que les autres perçoivent de toi avant même que tu ne parles.',
+    introduction: 'Ce que les autres perçoivent de toi avant même que tu ne parles.',
     premium: false,
     featured: false,
+    hasAI: false,
+    archetypes: firstImpressionArchetypes,
+    resultStructure: {
+      title: 'Mon Aura Sociale',
+      sections: ['Portrait de l\'Aura Sociale', 'Ce Que Tu Dégages Sans Le Vouloir', 'Décalage Intention/Perception', 'Archétype', 'Axes d\'Évolution']
+    },
     questions: [
       {
-        id: 'q1',
-        text: 'Lors d\'une soirée, vous avez tendance à :',
+        id: 'fi_q1',
+        text: 'Quand tu entres dans une pièce remplie d\'inconnus, que ressens-tu le plus souvent ?',
         type: 'single',
-        category: 'social_approach',
+        category: 'energy',
         options: [
-          'Rester dans votre coin et observer',
-          'Discuter avec quelques personnes que vous connaissez',
-          'Aller vers de nouvelles personnes spontanément',
-          'Être au centre de l\'attention'
+          'Une légère tension, comme si tous les regards convergeaient vers moi',
+          'Une curiosité tranquille, j\'observe avant d\'être observé',
+          'Rien de particulier, je me fonds naturellement dans l\'espace',
+          'Une forme d\'énergie, comme si ma présence modifiait l\'atmosphère'
         ]
       },
       {
-        id: 'q2',
-        text: 'Quand vous rencontrez quelqu\'un pour la première fois, vous :',
+        id: 'fi_q2',
+        text: 'Comment décrirais-tu ton regard lorsque tu croises celui d\'un inconnu ?',
         type: 'single',
-        category: 'first_contact',
+        category: 'gaze',
         options: [
-          'Attendez qu\'on vienne vers vous',
-          'Souriez poliment et attendez',
-          'Engagez la conversation naturellement',
-          'Faites une blague pour briser la glace'
+          'Direct et soutenu, je ne détourne pas facilement les yeux',
+          'Furtif, je préfère observer sans être vu',
+          'Chaleureux, j\'ai tendance à sourire légèrement',
+          'Neutre, je ne cherche ni contact ni évitement'
         ]
       },
       {
-        id: 'q3',
-        text: 'Votre langage corporel est généralement :',
+        id: 'fi_q3',
+        text: 'Dans un silence partagé avec quelqu\'un que tu viens de rencontrer, tu te sens généralement :',
         type: 'single',
-        category: 'body_language',
+        category: 'silence',
         options: [
-          'Réservé, bras croisés',
-          'Neutre et discret',
-          'Ouvert et accueillant',
-          'Expressif et dynamique'
+          'À l\'aise, le silence ne me dérange pas',
+          'Légèrement nerveux, j\'ai envie de combler le vide',
+          'Curieux de ce que l\'autre pense',
+          'Détaché, comme si ce moment ne me concernait pas vraiment'
         ]
       },
       {
-        id: 'q4',
-        text: 'Comment décririez-vous votre style vestimentaire ?',
+        id: 'fi_q4',
+        text: 'On t\'a déjà dit que tu semblais :',
         type: 'single',
-        category: 'style',
+        category: 'perception',
         options: [
-          'Classique et sobre',
-          'Décontracté et confortable',
-          'Tendance et soigné',
-          'Original et remarquable'
+          'Difficile à approcher',
+          'Plus doux/douce que tu ne le parais',
+          'Intense ou magnétique',
+          'Discret mais marquant'
         ]
       },
       {
-        id: 'q5',
-        text: 'Lors d\'une première rencontre, vous parlez plutôt de :',
+        id: 'fi_q5',
+        text: 'Quand tu ne parles pas, ton visage exprime plutôt :',
+        type: 'single',
+        category: 'expression',
+        options: [
+          'Une forme de concentration ou de sérieux',
+          'Une neutralité difficile à lire',
+          'Une ouverture, comme une invitation silencieuse',
+          'Une légère tension, même involontaire'
+        ]
+      },
+      {
+        id: 'fi_q6',
+        text: 'Dans un groupe, sans le vouloir, tu occupes souvent :',
+        type: 'single',
+        category: 'position',
+        options: [
+          'Le centre de l\'attention',
+          'La périphérie, en observateur',
+          'Une position fluide, selon les moments',
+          'Un rôle de lien entre les autres'
+        ]
+      },
+      {
+        id: 'fi_q7',
+        text: 'Lorsque quelqu\'un te rencontre pour la première fois, il te perçoit probablement comme :',
+        type: 'single',
+        category: 'perceived',
+        options: [
+          'Quelqu\'un de confiant, peut-être intimidant',
+          'Quelqu\'un de réservé, difficile à cerner',
+          'Quelqu\'un de chaleureux et accessible',
+          'Quelqu\'un d\'intrigant, qui donne envie d\'en savoir plus'
+        ]
+      },
+      {
+        id: 'fi_q8',
+        text: 'Ta posture physique au repos est plutôt :',
+        type: 'single',
+        category: 'posture',
+        options: [
+          'Droite, ancrée, occupant l\'espace',
+          'Repliée, protégée, économe en gestes',
+          'Détendue, ouverte, sans tension visible',
+          'Variable, selon mon état intérieur'
+        ]
+      },
+      {
+        id: 'fi_q9',
+        text: 'Quand tu écoutes quelqu\'un parler, ton corps :',
+        type: 'single',
+        category: 'listening',
+        options: [
+          'Se penche légèrement vers l\'autre',
+          'Reste en retrait, à distance respectueuse',
+          'Bouge beaucoup, tu es expressif',
+          'Reste immobile, concentré'
+        ]
+      },
+      {
+        id: 'fi_q10',
+        text: 'Si tu devais choisir un mot pour décrire l\'énergie que tu dégages sans le vouloir :',
+        type: 'single',
+        category: 'essence',
+        options: [
+          'Intensité',
+          'Mystère',
+          'Douceur',
+          'Calme'
+        ]
+      }
+    ],
+    analysisPrompt: `Tu es un analyste de personnalité spécialisé dans la perception sociale et les premières impressions.
+
+Analyse les réponses de l'utilisateur pour créer un portrait profond de son "aura sociale" - l'impression qu'il laisse avant même de parler.
+
+Structure ton analyse ainsi :
+
+## Portrait de l'Aura Sociale
+Décris l'empreinte énergétique que cette personne laisse dans l'espace social. Comment sa présence est-elle ressentie par les autres avant toute interaction verbale ?
+
+## Ce Que Tu Dégages Sans Le Vouloir
+Analyse les signaux inconscients : micro-expressions, posture, gestion du regard, occupation de l'espace. Qu'est-ce que les autres captent intuitivement ?
+
+## Décalage Intention / Perception
+Identifie l'écart potentiel entre ce que la personne pense projeter et ce qui est réellement perçu. Où se situent les zones de malentendu identitaire ?
+
+## Ton Archétype
+Identifie l'archétype dominant parmi : Le Magnétique, Le Réservé, Le Mystérieux, Le Solaire, L'Observateur, L'Intense.
+Explique pourquoi cet archétype correspond.
+
+## Axes d'Évolution
+Propose 3 pistes de conscience pour mieux habiter sa présence sociale.
+
+Ton : calme, précis, bienveillant. Pas de jugement, pas de marketing. Une lecture profonde et utile.`
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 2. TEST DE SÉDUCTION
+  // ═══════════════════════════════════════════════════════════════════════════
+  'seduction': {
+    id: 'seduction',
+    title: 'Test de Séduction',
+    description: 'Ton langage silencieux. Ce qui attire sans que tu le saches.',
+    introduction: 'Ton langage silencieux. Ce qui attire sans que tu le saches.',
+    premium: false,
+    featured: false,
+    hasAI: false,
+    archetypes: seductionArchetypes,
+    resultStructure: {
+      title: 'Mon Langage de Séduction',
+      sections: ['Style de Séduction Inconscient', 'Forces d\'Attraction', 'Zones de Friction', 'Profil de Séduction', 'Axes d\'Évolution']
+    },
+    questions: [
+      {
+        id: 'sed_q1',
+        text: 'Dans une conversation qui t\'attire, tu as tendance à :',
         type: 'single',
         category: 'conversation',
         options: [
-          'Sujets généraux (météo, actualités)',
-          'Vos passions et centres d\'intérêt',
-          'Questions sur l\'autre personne',
-          'Histoires drôles ou anecdotes'
+          'Laisser des silences, créer de la tension',
+          'Poser beaucoup de questions, montrer ton intérêt',
+          'Partager des choses personnelles rapidement',
+          'Rester légèrement en retrait, laisser l\'autre venir'
         ]
       },
       {
-        id: 'q6',
-        text: 'Votre regard lors d\'une conversation :',
+        id: 'sed_q2',
+        text: 'Quand tu es attiré(e) par quelqu\'un, ton corps :',
         type: 'single',
-        category: 'eye_contact',
+        category: 'body',
         options: [
-          'Vous évitez souvent le contact visuel',
-          'Contact visuel bref et occasionnel',
-          'Contact visuel régulier et naturel',
-          'Contact visuel intense et soutenu'
+          'Se rapproche naturellement, cherche le contact',
+          'Se tend légèrement, devient plus contrôlé',
+          'S\'ouvre, devient plus expressif',
+          'Reste neutre, tu masques bien'
         ]
       },
       {
-        id: 'q7',
-        text: 'Comment gérez-vous les silences dans une conversation ?',
+        id: 'sed_q3',
+        text: 'Le regard que tu portes sur quelqu\'un qui te plaît est plutôt :',
         type: 'single',
-        category: 'silence_management',
+        category: 'gaze',
         options: [
-          'Vous êtes mal à l\'aise et cherchez à partir',
-          'Vous attendez que l\'autre relance',
-          'Vous relancez naturellement la conversation',
-          'Vous êtes à l\'aise avec le silence'
+          'Soutenu, presque provocant',
+          'Furtif, tu regardes quand l\'autre ne te voit pas',
+          'Souriant, chaleureux',
+          'Profond, comme si tu cherchais quelque chose'
         ]
       },
       {
-        id: 'q8',
-        text: 'Quelle impression pensez-vous laisser généralement ?',
+        id: 'sed_q4',
+        text: 'Dans la séduction, tu préfères :',
         type: 'single',
-        category: 'self_perception',
+        category: 'dynamic',
         options: [
-          'Mystérieux/se et réservé/e',
-          'Sympathique et accessible',
-          'Confiant/e et charismatique',
-          'Énergique et mémorable'
+          'Être chassé(e), sentir qu\'on te désire',
+          'Chasser, prendre l\'initiative',
+          'Un équilibre, un jeu à deux',
+          'Ne pas savoir qui mène, rester dans l\'ambiguïté'
         ]
       },
       {
-        id: 'q9',
-        text: 'Après une première rencontre, vous :',
-        type: 'single',
-        category: 'follow_up',
-        options: [
-          'Attendez que l\'autre vous recontacte',
-          'Envoyez un message poli quelques jours après',
-          'Recontactez rapidement si affinité',
-          'Proposez directement de se revoir'
-        ]
-      },
-      {
-        id: 'q10',
-        text: 'Votre plus grande force en première impression :',
+        id: 'sed_q5',
+        text: 'Ce qui te rend le plus attirant(e) selon toi :',
         type: 'single',
         category: 'strength',
         options: [
-          'Votre écoute attentive',
-          'Votre authenticité',
-          'Votre aisance sociale',
-          'Votre charisme naturel'
+          'Ta présence, ton énergie',
+          'Ton mystère, ce que tu ne dis pas',
+          'Ton humour, ta légèreté',
+          'Ton intensité, ta profondeur'
+        ]
+      },
+      {
+        id: 'sed_q6',
+        text: 'Quand l\'attirance est mutuelle, tu ressens :',
+        type: 'single',
+        category: 'feeling',
+        options: [
+          'Une excitation, une forme d\'urgence',
+          'Une tension agréable, un suspense',
+          'Une sérénité, une évidence',
+          'Une vulnérabilité, presque de la peur'
+        ]
+      },
+      {
+        id: 'sed_q7',
+        text: 'Le premier contact physique avec quelqu\'un qui te plaît :',
+        type: 'single',
+        category: 'touch',
+        options: [
+          'Tu l\'initie naturellement',
+          'Tu attends que l\'autre le fasse',
+          'Il arrive sans que tu t\'en rendes compte',
+          'Tu le repousses légèrement pour créer du désir'
+        ]
+      },
+      {
+        id: 'sed_q8',
+        text: 'Dans l\'intimité émotionnelle naissante, tu :',
+        type: 'single',
+        category: 'intimacy',
+        options: [
+          'Te dévoiles progressivement, par couches',
+          'Restes sur tes gardes longtemps',
+          'T\'ouvres rapidement si tu te sens en confiance',
+          'Oscilles entre ouverture et fermeture'
+        ]
+      },
+      {
+        id: 'sed_q9',
+        text: 'Ce qui crée le plus de tension selon toi :',
+        type: 'single',
+        category: 'tension',
+        options: [
+          'Ce qui n\'est pas dit',
+          'Ce qui est dit à demi-mot',
+          'Le contact physique retenu',
+          'Le regard prolongé'
+        ]
+      },
+      {
+        id: 'sed_q10',
+        text: 'Ton rythme naturel dans la séduction :',
+        type: 'single',
+        category: 'rhythm',
+        options: [
+          'Lent, tu prends ton temps',
+          'Rapide, tu sais vite ce que tu veux',
+          'Variable, selon la personne',
+          'Imprévisible, même pour toi'
+        ]
+      },
+      {
+        id: 'sed_q11',
+        text: 'Ce qui fait fuir l\'autre, selon toi :',
+        type: 'single',
+        category: 'shadow',
+        options: [
+          'Tu peux sembler trop distant(e)',
+          'Tu peux sembler trop intense',
+          'Tu peux sembler trop disponible',
+          'Tu ne sais pas vraiment'
+        ]
+      },
+      {
+        id: 'sed_q12',
+        text: 'La séduction idéale pour toi ressemble à :',
+        type: 'single',
+        category: 'ideal',
+        options: [
+          'Un jeu subtil où personne ne gagne vraiment',
+          'Une connexion évidente et rapide',
+          'Une lente construction de confiance',
+          'Une tension permanente, jamais totalement résolue'
         ]
       }
     ],
-    analysisPrompt: `Tu es Astra, une IA experte en psychologie relationnelle et développement personnel.
-Analyse les réponses au questionnaire "Première Impression" et fournis une analyse COMPLÈTE en FRANÇAIS.
+    analysisPrompt: `Tu es un analyste spécialisé dans les dynamiques de séduction et d'attraction interpersonnelle.
 
-RÈGLES IMPORTANTES :
-- Réponds UNIQUEMENT en français
-- Remplis TOUTES les sections sans exception
-- Sois bienveillant/e mais honnête
-- Personnalise l'analyse selon les réponses données
-- Donne des conseils concrets et actionnables
+Analyse les réponses pour créer un portrait du "style de séduction inconscient" de cette personne.
 
-SECTIONS OBLIGATOIRES :
-1. Profil identifié (nom + pourcentage de correspondance)
-2. Analyse générale (4-5 phrases)
-3. Vos Forces (minimum 3 points)
-4. Vos Défis (minimum 3 points)
-5. Recommandations (minimum 3 conseils)
-6. Compatibilités (profils avec lesquels cette personne s'entend le mieux)
+Structure ton analyse ainsi :
 
-PROFILS POSSIBLES :
-- Introverti Réservé (majorité de réponses A)
-- Sociable Mesuré (majorité de réponses B)
-- Charismatique Naturel (majorité de réponses C)
-- Extraverti Magnétique (majorité de réponses D)
+## Style de Séduction Inconscient
+Décris le mode opératoire naturel de cette personne en séduction : son approche, son tempo, sa gestion de la distance, les signaux qu'elle émet.
 
-Format JSON de réponse :
-{
-  "profil_principal": "Nom du profil",
-  "score": "XX",
-  "analyse_generale": "Paragraphe de 4-5 phrases",
-  "forces": ["Force 1", "Force 2", "Force 3"],
-  "defis": ["Défi 1", "Défi 2", "Défi 3"],
-  "recommandations": ["Conseil 1", "Conseil 2", "Conseil 3"],
-  "compatibilites": {
-    "tres_compatible": ["Profil A", "Profil B"],
-    "compatible": ["Profil C"],
-    "a_travailler": ["Profil D"]
-  }
-}`
+## Forces d'Attraction Naturelles
+Qu'est-ce qui magnétise l'autre chez cette personne ? Son énergie, son mystère, sa chaleur, son intensité, son humour, sa présence ?
+
+## Zones de Friction ou de Malentendu
+Ce qui peut être mal interprété, ce qui crée de la confusion chez l'autre, les angles morts.
+
+## Ton Profil de Séduction
+Identifie le profil dominant parmi : Le Magnétique Silencieux, Le Joueur Subtil, Le Solaire Direct, L'Intense Profond, Le Mystérieux Fuyant, L'Équilibriste.
+Explique ce qui caractérise ce profil.
+
+## Comment Ton Énergie Est Ressentie
+Portrait de la signature relationnelle dans les premiers stades d'une connexion.
+
+## Axes d'Évolution
+Ce qui pourrait être ajusté pour une séduction plus alignée avec tes intentions profondes.
+
+Ton : calme, précis, sans jugement. Pas de conseils de drague, une lecture psychologique profonde.`
   },
 
-  'seduction': {
-    id: 'seduction',
-    title: '💋 Test de Séduction',
-    description: 'Identifiez vos atouts de séduction et votre style unique',
-    premium: false,
-    featured: false,
-    questions: [
-      {
-        id: 'q1',
-        text: 'Pour séduire, vous misez avant tout sur :',
-        type: 'single',
-        category: 'main_asset',
-        options: [
-          'Votre intelligence et vos conversations',
-          'Votre humour et votre légèreté',
-          'Votre charme physique et votre regard',
-          'Votre mystère et votre inaccessibilité'
-        ]
-      },
-      {
-        id: 'q2',
-        text: 'Lors d\'un flirt, vous êtes plutôt :',
-        type: 'single',
-        category: 'flirt_style',
-        options: [
-          'Subtil/e et patient/e',
-          'Direct/e et assumé/e',
-          'Joueur/se et taquin/e',
-          'Passionné/e et intense'
-        ]
-      },
-      {
-        id: 'q3',
-        text: 'Votre arme de séduction secrète :',
-        type: 'single',
-        category: 'secret_weapon',
-        options: [
-          'Votre écoute et votre empathie',
-          'Votre confiance en vous',
-          'Votre sens de l\'humour',
-          'Votre regard et votre sourire'
-        ]
-      },
-      {
-        id: 'q4',
-        text: 'Face à quelqu\'un qui vous plaît :',
-        type: 'single',
-        category: 'approach',
-        options: [
-          'Vous attendez des signes avant d\'agir',
-          'Vous montrez subtilement votre intérêt',
-          'Vous faites le premier pas',
-          'Vous créez une tension et du mystère'
-        ]
-      },
-      {
-        id: 'q5',
-        text: 'En séduction, vous préférez :',
-        type: 'single',
-        category: 'preference',
-        options: [
-          'Les longues discussions profondes',
-          'Les moments de complicité et de rire',
-          'Le jeu du chat et de la souris',
-          'Les moments d\'intensité et de passion'
-        ]
-      },
-      {
-        id: 'q6',
-        text: 'Votre façon de montrer votre intérêt :',
-        type: 'single',
-        category: 'showing_interest',
-        options: [
-          'Compliments sincères et attention',
-          'Taquineries et humour',
-          'Regards appuyés et rapprochement physique',
-          'Messages et petites attentions'
-        ]
-      },
-      {
-        id: 'q7',
-        text: 'Ce qui vous rend irrésistible selon vous :',
-        type: 'single',
-        category: 'irresistible',
-        options: [
-          'Votre authenticité',
-          'Votre assurance',
-          'Votre sensualité',
-          'Votre originalité'
-        ]
-      },
-      {
-        id: 'q8',
-        text: 'Votre réaction si on vous résiste :',
-        type: 'single',
-        category: 'resistance',
-        options: [
-          'Vous respectez et prenez du recul',
-          'Vous persévérez avec patience',
-          'Vous intensifiez le jeu',
-          'Vous passez à autre chose'
-        ]
-      },
-      {
-        id: 'q9',
-        text: 'Le compliment qui vous touche le plus :',
-        type: 'single',
-        category: 'compliment',
-        options: [
-          '"Tu es passionnant/e à écouter"',
-          '"Tu me fais tellement rire"',
-          '"Tu as un charme fou"',
-          '"Tu es différent/e des autres"'
-        ]
-      },
-      {
-        id: 'q10',
-        text: 'Votre style de séduction en un mot :',
-        type: 'single',
-        category: 'style_word',
-        options: [
-          'Intellectuel',
-          'Complice',
-          'Sensuel',
-          'Mystérieux'
-        ]
-      },
-      {
-        id: 'q11',
-        text: 'Le premier rendez-vous idéal pour vous :',
-        type: 'single',
-        category: 'ideal_date',
-        options: [
-          'Un dîner avec longue conversation',
-          'Une activité fun ensemble',
-          'Un verre dans un lieu intimiste',
-          'Une surprise ou quelque chose d\'original'
-        ]
-      },
-      {
-        id: 'q12',
-        text: 'Ce qui tue l\'attraction pour vous :',
-        type: 'single',
-        category: 'dealbreaker',
-        options: [
-          'Le manque de conversation',
-          'Le manque d\'humour',
-          'Le manque de tension/chimie',
-          'La prévisibilité'
-        ]
-      }
-    ],
-    analysisPrompt: `Tu es Astra, une IA experte en psychologie relationnelle et développement personnel.
-Analyse les réponses au questionnaire "Test de Séduction" et fournis une analyse COMPLÈTE en FRANÇAIS.
-
-RÈGLES IMPORTANTES :
-- Réponds UNIQUEMENT en français
-- Remplis TOUTES les sections sans exception
-- Sois bienveillant/e mais honnête
-- Personnalise l'analyse selon les réponses données
-- Donne des conseils concrets et actionnables
-
-SECTIONS OBLIGATOIRES :
-1. Profil identifié (nom + pourcentage de correspondance)
-2. Analyse générale (4-5 phrases)
-3. Vos Forces (minimum 3 points)
-4. Vos Défis (minimum 3 points)
-5. Recommandations (minimum 3 conseils)
-6. Compatibilités (profils avec lesquels cette personne a la meilleure alchimie)
-
-PROFILS POSSIBLES :
-- Séducteur/trice Intellectuel/le (connexion mentale)
-- Séducteur/trice Complice (humour et légèreté)
-- Séducteur/trice Sensuel/le (attraction physique)
-- Séducteur/trice Mystérieux/se (intrigue et défi)
-
-Format JSON de réponse :
-{
-  "profil_principal": "Nom du profil",
-  "score": "XX",
-  "analyse_generale": "Paragraphe de 4-5 phrases",
-  "forces": ["Force 1", "Force 2", "Force 3"],
-  "defis": ["Défi 1", "Défi 2", "Défi 3"],
-  "recommandations": ["Conseil 1", "Conseil 2", "Conseil 3"],
-  "compatibilites": {
-    "tres_compatible": ["Profil A", "Profil B"],
-    "compatible": ["Profil C"],
-    "a_travailler": ["Profil D"]
-  }
-}`
-  },
-
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 3. STYLE D'ATTACHEMENT — ANALYSE IA
+  // ═══════════════════════════════════════════════════════════════════════════
   'attachment': {
     id: 'attachment',
-    title: '💕 Style d\'Attachement',
-    description: 'Découvrez votre style d\'attachement en amour et relations',
+    title: 'Style d\'Attachement',
+    description: 'Comment tu te lies. Et pourquoi certaines relations t\'échappent.',
+    introduction: 'Comment tu te lies. Et pourquoi certaines relations t\'échappent.',
     premium: true,
-    featured: false,
+    featured: true,
+    hasAI: true,
+    archetypes: attachmentArchetypes,
+    resultStructure: {
+      title: 'Mon Style d\'Attachement',
+      sections: ['Modélisation du Style', 'Déclencheurs Inconscients', 'Boucles Relationnelles', 'Lecture Clinique', 'Chemins vers la Sécurité']
+    },
     questions: [
       {
-        id: 'q1',
-        text: 'Dans une relation, vous avez besoin :',
+        id: 'att_q1',
+        text: 'Quand quelqu\'un que tu aimes ne répond pas à un message pendant plusieurs heures, tu ressens :',
         type: 'single',
-        category: 'needs',
+        category: 'anxiety',
         options: [
-          'De beaucoup de réassurance et de proximité',
-          'D\'un équilibre entre intimité et indépendance',
-          'De garder une certaine distance émotionnelle',
-          'Ça dépend, vous êtes souvent partagé/e'
+          'Une légère inquiétude que tu chasses rapidement',
+          'Une anxiété qui monte progressivement',
+          'Rien de particulier, tu as confiance',
+          'Un soulagement, tu avais besoin d\'espace'
         ]
       },
       {
-        id: 'q2',
-        text: 'Quand votre partenaire ne répond pas rapidement :',
+        id: 'att_q2',
+        text: 'Dans une relation, tu as besoin de réassurance :',
         type: 'single',
-        category: 'response_anxiety',
+        category: 'reassurance',
         options: [
-          'Vous vous inquiétez et imaginez le pire',
-          'Vous attendez patiemment sans stress',
-          'Vous appréciez ce moment de tranquillité',
-          'Vous oscillez entre inquiétude et détachement'
+          'Rarement, ta sécurité vient de toi',
+          'Régulièrement, les mots comptent',
+          'Souvent, le doute s\'installe facilement',
+          'Jamais, tu préfères l\'indépendance totale'
         ]
       },
       {
-        id: 'q3',
-        text: 'Exprimer vos émotions dans un couple :',
-        type: 'single',
-        category: 'emotion_expression',
-        options: [
-          'Vous en avez besoin mais avez peur du rejet',
-          'Vous le faites naturellement et sereinement',
-          'Vous trouvez ça difficile et inconfortable',
-          'Vous voulez mais vous vous bloquez souvent'
-        ]
-      },
-      {
-        id: 'q4',
-        text: 'Face aux conflits dans le couple :',
-        type: 'single',
-        category: 'conflict',
-        options: [
-          'Vous avez peur que ça mène à la rupture',
-          'Vous les gérez calmement par le dialogue',
-          'Vous préférez prendre de la distance',
-          'Vous réagissez de façon imprévisible'
-        ]
-      },
-      {
-        id: 'q5',
-        text: 'Votre vision de la dépendance affective :',
-        type: 'single',
-        category: 'dependency',
-        options: [
-          'Vous avez tendance à être dépendant/e',
-          'Vous trouvez un équilibre sain',
-          'Vous évitez toute forme de dépendance',
-          'Vous alternez entre les deux extrêmes'
-        ]
-      },
-      {
-        id: 'q6',
-        text: 'Quand une relation devient sérieuse :',
+        id: 'att_q3',
+        text: 'Quand une relation devient plus sérieuse, tu as tendance à :',
         type: 'single',
         category: 'commitment',
         options: [
-          'Vous êtes rassuré/e mais craignez l\'abandon',
-          'Vous vous sentez épanoui/e et confiant/e',
-          'Vous ressentez le besoin de freiner',
-          'Vous êtes attiré/e et effrayé/e à la fois'
+          'T\'ouvrir davantage, te sentir en sécurité',
+          'Te replier légèrement, protéger ton espace',
+          'Osciller entre rapprochement et distance',
+          'Fuir ou saboter inconsciemment'
         ]
       },
       {
-        id: 'q7',
-        text: 'Votre réaction si on vous demande plus d\'engagement :',
+        id: 'att_q4',
+        text: 'La proximité émotionnelle te fait ressentir :',
         type: 'single',
-        category: 'engagement_request',
+        category: 'intimacy',
         options: [
-          'Vous êtes content/e mais angoissé/e',
-          'Vous acceptez si c\'est réciproque',
-          'Vous vous sentez piégé/e',
-          'Vous ne savez pas comment réagir'
+          'Du confort et de la sérénité',
+          'Une forme de vulnérabilité inconfortable',
+          'Un mélange d\'attirance et de peur',
+          'Le besoin de reprendre de la distance'
         ]
       },
       {
-        id: 'q8',
-        text: 'Enfant, votre relation avec vos parents était :',
+        id: 'att_q5',
+        text: 'Quand tu sens l\'autre s\'éloigner, même légèrement :',
         type: 'single',
-        category: 'childhood',
+        category: 'distance',
         options: [
-          'Fusionnelle ou anxieuse',
-          'Stable et sécurisante',
-          'Distante ou froide',
-          'Imprévisible ou chaotique'
+          'Tu restes calme, tu fais confiance au lien',
+          'Tu cherches à comprendre, à réparer',
+          'Tu paniques intérieurement',
+          'Tu t\'éloignes aussi, par réflexe'
         ]
       },
       {
-        id: 'q9',
-        text: 'Vous pensez que l\'amour :',
+        id: 'att_q6',
+        text: 'Ton rapport à l\'indépendance dans une relation :',
         type: 'single',
-        category: 'love_vision',
+        category: 'independence',
         options: [
-          'Est source de bonheur mais aussi de souffrance',
-          'Est une belle aventure à construire ensemble',
-          'Fait perdre son indépendance',
-          'Est compliqué et vous déstabilise'
+          'J\'ai besoin d\'espace mais je sais revenir',
+          'J\'ai du mal à demander de l\'espace',
+          'Mon indépendance est non négociable',
+          'Je ne sais pas vraiment ce dont j\'ai besoin'
         ]
       },
       {
-        id: 'q10',
-        text: 'Après une rupture, vous :',
+        id: 'att_q7',
+        text: 'Quand tu te disputes avec quelqu\'un que tu aimes :',
         type: 'single',
-        category: 'breakup',
+        category: 'conflict',
         options: [
-          'Êtes dévasté/e et avez du mal à vous en remettre',
-          'Êtes triste mais vous reconstruisez',
-          'Passez à autre chose assez vite',
-          'Oscillez entre désespoir et détachement'
+          'Tu cherches à résoudre rapidement',
+          'Tu te fermes, tu as besoin de temps',
+          'Tu ressens une peur intense de perdre l\'autre',
+          'Tu minimises, tu passes à autre chose'
         ]
       },
       {
-        id: 'q11',
-        text: 'Ce que vous recherchez chez un partenaire :',
+        id: 'att_q8',
+        text: 'Le mot qui décrit le mieux ta manière d\'aimer :',
         type: 'single',
-        category: 'partner_search',
+        category: 'style',
         options: [
-          'Quelqu\'un de très présent et rassurant',
-          'Quelqu\'un d\'équilibré et stable',
-          'Quelqu\'un qui respecte votre espace',
-          'Vous ne savez pas vraiment'
+          'Stable',
+          'Intense',
+          'Prudente',
+          'Fluctuante'
         ]
       },
       {
-        id: 'q12',
-        text: 'Votre plus grande peur en amour :',
+        id: 'att_q9',
+        text: 'Dans tes relations passées, tu as souvent ressenti :',
+        type: 'single',
+        category: 'pattern',
+        options: [
+          'Une sécurité durable',
+          'Une peur de l\'abandon',
+          'Une peur de l\'envahissement',
+          'Une confusion sur ce que tu voulais vraiment'
+        ]
+      },
+      {
+        id: 'att_q10',
+        text: 'Quand quelqu\'un te dit "je t\'aime" pour la première fois :',
+        type: 'single',
+        category: 'declaration',
+        options: [
+          'Tu te sens heureux/heureuse et tu réponds naturellement',
+          'Tu ressens une légère panique, même si tu le penses aussi',
+          'Tu doutes de la sincérité de l\'autre',
+          'Tu as envie de fuir, même si tu ressens quelque chose'
+        ]
+      },
+      {
+        id: 'att_q11',
+        text: 'Ton plus grand schéma répétitif en relation :',
+        type: 'single',
+        category: 'loop',
+        options: [
+          'Choisir des personnes indisponibles',
+          'Donner trop, trop vite',
+          'Te fermer quand ça devient sérieux',
+          'Ne pas savoir ce que tu veux vraiment'
+        ]
+      },
+      {
+        id: 'att_q12',
+        text: 'Ce qui te rassure le plus dans une relation :',
+        type: 'single',
+        category: 'security',
+        options: [
+          'La constance, la prévisibilité',
+          'Les mots, les preuves d\'amour',
+          'L\'espace, le respect de ton indépendance',
+          'Rien ne me rassure vraiment longtemps'
+        ]
+      },
+      {
+        id: 'att_q13',
+        text: 'Quand tu te sens en insécurité relationnelle, tu :',
+        type: 'single',
+        category: 'reaction',
+        options: [
+          'En parles directement',
+          'Gardes pour toi et observes',
+          'Deviens plus demandeur/demandeuse',
+          'Prends de la distance'
+        ]
+      },
+      {
+        id: 'att_q14',
+        text: 'Si tu devais décrire ton lien aux autres en une image :',
+        type: 'single',
+        category: 'metaphor',
+        options: [
+          'Un ancrage solide',
+          'Un élastique tendu',
+          'Une porte entrouverte',
+          'Un mouvement perpétuel d\'aller-retour'
+        ]
+      }
+    ],
+    analysisPrompt: `Tu es un psychologue spécialisé dans la théorie de l'attachement et les dynamiques relationnelles.
+
+Analyse les réponses pour créer un portrait approfondi du style d'attachement de cette personne.
+
+Structure ton analyse ainsi :
+
+## Modélisation de Ton Style d'Attachement
+Identifie le style dominant (Sécure, Anxieux-Préoccupé, Évitant-Détaché, ou Désorganisé-Craintif) avec ses nuances spécifiques. Explique comment ce style se manifeste concrètement dans les relations.
+
+## Déclencheurs Inconscients
+Qu'est-ce qui active les réponses d'attachement ? Le silence, la distance, l'engagement, la vulnérabilité ? Identifie les situations qui déclenchent les réactions automatiques.
+
+## Boucles Relationnelles Répétitives
+Quels patterns se reproduisent ? Choix de partenaires, dynamiques récurrentes, points de rupture typiques.
+
+## Lecture Quasi-Clinique Mais Humaine
+Analyse profonde du fonctionnement relationnel avec empathie, sans jugement. Comprendre, pas étiqueter.
+
+## Chemins Vers Plus de Sécurité
+Pistes concrètes pour évoluer vers un attachement plus sécure, en tenant compte du profil identifié.
+
+Ton : clinique mais chaleureux, précis mais empathique. Comme un thérapeute bienveillant qui éclaire sans juger.`
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 4. ARCHÉTYPE AMOUREUX — ANALYSE IA
+  // ═══════════════════════════════════════════════════════════════════════════
+  'archetype': {
+    id: 'archetype',
+    title: 'Archétype Amoureux',
+    description: 'Le schéma profond qui guide tes choix romantiques.',
+    introduction: 'Le schéma profond qui guide tes choix romantiques.',
+    premium: true,
+    featured: true,
+    hasAI: true,
+    archetypes: loveArchetypes,
+    resultStructure: {
+      title: 'Mon Archétype Amoureux',
+      sections: ['Archétype Dominant', 'Forces', 'Zones d\'Ombre', 'Attirances', 'Compatibilités', 'Évolution']
+    },
+    questions: [
+      {
+        id: 'arc_q1',
+        text: 'Dans une relation idéale, tu voudrais te sentir :',
+        type: 'single',
+        category: 'need',
+        options: [
+          'Protégé(e), en sécurité',
+          'Libre, sans contrainte',
+          'Fusionnel(le), ne faire qu\'un',
+          'Admiré(e), valorisé(e)'
+        ]
+      },
+      {
+        id: 'arc_q2',
+        text: 'Ce qui t\'attire instinctivement chez quelqu\'un :',
+        type: 'single',
+        category: 'attraction',
+        options: [
+          'Sa force, son assurance',
+          'Son mystère, ce que je ne comprends pas',
+          'Sa douceur, sa capacité à prendre soin',
+          'Son intelligence, sa profondeur'
+        ]
+      },
+      {
+        id: 'arc_q3',
+        text: 'Dans l\'amour, tu cherches inconsciemment à :',
+        type: 'single',
+        category: 'quest',
+        options: [
+          'Être sauvé(e) ou sauver',
+          'Être compris(e) totalement',
+          'Vivre une passion dévorante',
+          'Construire quelque chose de stable'
+        ]
+      },
+      {
+        id: 'arc_q4',
+        text: 'Le rôle que tu prends naturellement en couple :',
+        type: 'single',
+        category: 'role',
+        options: [
+          'Le protecteur / la protectrice',
+          'Le guidé(e), celui/celle qui suit',
+          'L\'égal(e), un partenariat équilibré',
+          'L\'électron libre, difficile à cerner'
+        ]
+      },
+      {
+        id: 'arc_q5',
+        text: 'Ce qui te fait tomber amoureux/amoureuse :',
+        type: 'single',
+        category: 'trigger',
+        options: [
+          'Un regard, une présence magnétique',
+          'Une conversation profonde',
+          'Un geste de tendresse inattendu',
+          'Un défi, quelqu\'un qui me résiste'
+        ]
+      },
+      {
+        id: 'arc_q6',
+        text: 'Tes relations passées avaient souvent en commun :',
+        type: 'single',
+        category: 'pattern',
+        options: [
+          'Une intensité émotionnelle forte',
+          'Une distance ou une indisponibilité',
+          'Une douceur, une stabilité',
+          'Une complexité, des hauts et des bas'
+        ]
+      },
+      {
+        id: 'arc_q7',
+        text: 'En amour, tu as tendance à idéaliser :',
+        type: 'single',
+        category: 'idealization',
+        options: [
+          'Le début, la phase de découverte',
+          'La fusion, les moments d\'intimité totale',
+          'La stabilité, le quotidien partagé',
+          'Le conflit, la réconciliation'
+        ]
+      },
+      {
+        id: 'arc_q8',
+        text: 'Ce que tu crains le plus dans l\'amour :',
         type: 'single',
         category: 'fear',
         options: [
           'L\'abandon',
-          'Aucune peur particulière',
-          'Perdre votre liberté',
-          'L\'intimité elle-même'
+          'L\'ennui',
+          'La perte de soi',
+          'La trahison'
         ]
       },
       {
-        id: 'q13',
-        text: 'Quand tout va bien dans votre couple :',
+        id: 'arc_q9',
+        text: 'Si l\'amour était un mythe, tu serais plutôt :',
         type: 'single',
-        category: 'when_good',
+        category: 'myth',
         options: [
-          'Vous attendez que quelque chose tourne mal',
-          'Vous profitez sereinement',
-          'Vous vous demandez si c\'est vraiment ce que vous voulez',
-          'Vous sabotez parfois inconsciemment'
+          'Orphée cherchant Eurydice — l\'amour impossible',
+          'Roméo et Juliette — la passion absolue',
+          'Philémon et Baucis — l\'amour qui dure',
+          'Ulysse et Pénélope — l\'amour à distance'
         ]
       },
       {
-        id: 'q14',
-        text: 'Votre façon de montrer votre amour :',
+        id: 'arc_q10',
+        text: 'Dans une relation, tu donnes souvent :',
         type: 'single',
-        category: 'love_expression',
+        category: 'giving',
         options: [
-          'Demander de la réassurance et être très présent/e',
-          'Gestes d\'affection équilibrés et communication',
-          'Actes plutôt que mots, en gardant une distance',
-          'De façon imprévisible et intense'
+          'Plus que tu ne reçois',
+          'Moins que tu ne voudrais',
+          'Autant que l\'autre',
+          'De manière imprévisible'
+        ]
+      },
+      {
+        id: 'arc_q11',
+        text: 'L\'amour te rend :',
+        type: 'single',
+        category: 'effect',
+        options: [
+          'Plus fort(e)',
+          'Plus vulnérable',
+          'Les deux à la fois',
+          'Confus(e)'
+        ]
+      },
+      {
+        id: 'arc_q12',
+        text: 'Ce qui te manque le plus quand une relation se termine :',
+        type: 'single',
+        category: 'loss',
+        options: [
+          'La présence physique',
+          'Les conversations profondes',
+          'Le sentiment d\'être choisi(e)',
+          'La routine partagée'
+        ]
+      },
+      {
+        id: 'arc_q13',
+        text: 'Tu es attiré(e) par des personnes qui :',
+        type: 'single',
+        category: 'attracted_to',
+        options: [
+          'Te ressemblent profondément',
+          'Sont ton opposé',
+          'Te complètent sur certains points',
+          'Te déstabilisent'
+        ]
+      },
+      {
+        id: 'arc_q14',
+        text: 'Si tu devais définir l\'amour en un mot :',
+        type: 'single',
+        category: 'definition',
+        options: [
+          'Sécurité',
+          'Passion',
+          'Liberté',
+          'Mystère'
         ]
       }
     ],
-    analysisPrompt: `Tu es Astra, une IA experte en psychologie relationnelle et développement personnel.
-Analyse les réponses au questionnaire "Style d'Attachement" et fournis une analyse COMPLÈTE en FRANÇAIS.
+    analysisPrompt: `Tu es un analyste jungien spécialisé dans les archétypes amoureux et les schémas relationnels profonds.
 
-RÈGLES IMPORTANTES :
-- Réponds UNIQUEMENT en français
-- Remplis TOUTES les sections sans exception
-- Sois bienveillant/e mais honnête
-- Personnalise l'analyse selon les réponses données
-- Donne des conseils concrets et actionnables
+Analyse les réponses pour créer un portrait archétypal de cette personne en amour.
 
-SECTIONS OBLIGATOIRES :
-1. Profil identifié (nom + pourcentage de correspondance)
-2. Analyse générale (4-5 phrases)
-3. Vos Forces (minimum 3 points)
-4. Vos Défis (minimum 3 points)
-5. Recommandations (minimum 3 conseils)
-6. Compatibilités (styles d'attachement les plus compatibles)
+Structure ton analyse ainsi :
 
-PROFILS POSSIBLES :
-- Attachement Anxieux (peur de l'abandon, besoin de réassurance)
-- Attachement Sécure (confiance, équilibre, sérénité)
-- Attachement Évitant (indépendance, distance émotionnelle)
-- Attachement Désorganisé (ambivalence, peur de l'intimité)
+## Ton Archétype Dominant
+Identifie l'archétype principal parmi : L'Âme Sœur, Le Protecteur, L'Aventurier, Le Romantique Tragique, Le Bâtisseur, L'Électron Libre, Le Guérisseur, Le Chercheur.
+Explique en profondeur comment cet archétype se manifeste.
 
-Format JSON de réponse :
-{
-  "profil_principal": "Nom du profil",
-  "score": "XX",
-  "analyse_generale": "Paragraphe de 4-5 phrases",
-  "forces": ["Force 1", "Force 2", "Force 3"],
-  "defis": ["Défi 1", "Défi 2", "Défi 3"],
-  "recommandations": ["Conseil 1", "Conseil 2", "Conseil 3"],
-  "compatibilites": {
-    "tres_compatible": ["Profil A", "Profil B"],
-    "compatible": ["Profil C"],
-    "a_travailler": ["Profil D"]
-  }
-}`
+## Forces de Cet Archétype
+Ce que cette configuration apporte de puissant dans les relations. Les dons naturels.
+
+## Zones d'Ombre
+Ce que cet archétype peut générer comme difficultés, les pièges récurrents.
+
+## Pourquoi Tu Es Attiré(e) Par Certains Profils
+Explication des attirances récurrentes, des choix inconscients. Ce qui te magnétise et pourquoi.
+
+## Lecture Symbolique et Mythologique
+Rattache ce profil à des figures archétypales, des récits universels. Donne du sens mythologique.
+
+## Archétypes Complémentaires
+Quels archétypes sont naturellement compatibles ? Quels défis avec d'autres ?
+
+## Vers une Expression Plus Équilibrée
+Comment intégrer les ombres et développer une expression plus complète de cet archétype.
+
+Ton : mythologique mais accessible, profond mais concret. Comme un analyste jungien qui parle avec clarté.`
   },
 
-  'archetype': {
-    id: 'archetype',
-    title: '🌟 Archétype Amoureux',
-    description: 'Découvrez votre archétype amoureux parmi 12 profils uniques',
-    premium: true,
-    featured: false,
-    questions: [
-      {
-        id: 'q1',
-        text: 'En amour, vous êtes guidé/e par :',
-        type: 'single',
-        category: 'guidance',
-        options: [
-          'La passion et l\'intensité',
-          'La raison et la compatibilité',
-          'L\'aventure et la nouveauté',
-          'La sécurité et la stabilité'
-        ]
-      },
-      {
-        id: 'q2',
-        text: 'Votre façon d\'aimer :',
-        type: 'single',
-        category: 'love_style',
-        options: [
-          'Totale et fusionnelle',
-          'Réfléchie et progressive',
-          'Libre et sans attaches',
-          'Protectrice et dévouée'
-        ]
-      },
-      {
-        id: 'q3',
-        text: 'Ce qui vous fait craquer :',
-        type: 'single',
-        category: 'attraction',
-        options: [
-          'L\'intensité du regard et la connexion',
-          'L\'intelligence et les valeurs communes',
-          'L\'imprévu et le mystère',
-          'La gentillesse et la fiabilité'
-        ]
-      },
-      {
-        id: 'q4',
-        text: 'Votre défaut en amour :',
-        type: 'single',
-        category: 'flaw',
-        options: [
-          'La jalousie ou la possessivité',
-          'La froideur ou le calcul',
-          'L\'inconstance ou la fuite',
-          'La dépendance ou l\'oubli de soi'
-        ]
-      },
-      {
-        id: 'q5',
-        text: 'Votre relation idéale :',
-        type: 'single',
-        category: 'ideal_relation',
-        options: [
-          'Passionnée comme dans les films',
-          'Construite sur des bases solides',
-          'Libre et sans routine',
-          'Douce et réconfortante'
-        ]
-      },
-      {
-        id: 'q6',
-        text: 'Face à un/e prétendant/e :',
-        type: 'single',
-        category: 'suitor',
-        options: [
-          'Vous foncez si l\'attirance est là',
-          'Vous analysez la compatibilité',
-          'Vous gardez vos options ouvertes',
-          'Vous prenez votre temps'
-        ]
-      },
-      {
-        id: 'q7',
-        text: 'L\'amour pour vous c\'est :',
-        type: 'single',
-        category: 'love_meaning',
-        options: [
-          'Un feu dévorant',
-          'Un partenariat équilibré',
-          'Une liberté partagée',
-          'Un refuge sûr'
-        ]
-      },
-      {
-        id: 'q8',
-        text: 'Votre plus belle qualité amoureuse :',
-        type: 'single',
-        category: 'quality',
-        options: [
-          'Votre passion',
-          'Votre loyauté',
-          'Votre indépendance',
-          'Votre dévouement'
-        ]
-      },
-      {
-        id: 'q9',
-        text: 'Ce qui vous fait fuir :',
-        type: 'single',
-        category: 'dealbreaker',
-        options: [
-          'La tiédeur et l\'ennui',
-          'L\'irrationalité et l\'instabilité',
-          'La routine et les contraintes',
-          'L\'égoïsme et l\'indifférence'
-        ]
-      },
-      {
-        id: 'q10',
-        text: 'Vous exprimez votre amour par :',
-        type: 'single',
-        category: 'expression',
-        options: [
-          'Des déclarations intenses et des gestes romantiques',
-          'Des preuves concrètes et la fidélité',
-          'Des expériences partagées et la complicité',
-          'Le soutien au quotidien et la présence'
-        ]
-      },
-      {
-        id: 'q11',
-        text: 'Votre vision du couple :',
-        type: 'single',
-        category: 'couple_vision',
-        options: [
-          'Deux âmes sœurs fusionnées',
-          'Deux partenaires complémentaires',
-          'Deux individus libres ensemble',
-          'Deux personnes qui prennent soin l\'une de l\'autre'
-        ]
-      },
-      {
-        id: 'q12',
-        text: 'En cas de crise dans le couple :',
-        type: 'single',
-        category: 'crisis',
-        options: [
-          'Vous vivez tout intensément (disputes passionnées)',
-          'Vous cherchez des solutions rationnelles',
-          'Vous prenez du recul ou de la distance',
-          'Vous faites tout pour arranger les choses'
-        ]
-      },
-      {
-        id: 'q13',
-        text: 'Le geste romantique qui vous représente :',
-        type: 'single',
-        category: 'romantic_gesture',
-        options: [
-          'Une déclaration passionnée sous la pluie',
-          'Un projet de vie construit ensemble',
-          'Un voyage surprise improvisé',
-          'Un petit déjeuner au lit un dimanche matin'
-        ]
-      },
-      {
-        id: 'q14',
-        text: 'Votre motto en amour :',
-        type: 'single',
-        category: 'motto',
-        options: [
-          '"Aimer à en perdre la raison"',
-          '"Construire pour durer"',
-          '"Vivre l\'instant présent"',
-          '"Aimer c\'est prendre soin"'
-        ]
-      }
-    ],
-    analysisPrompt: `Tu es Astra, une IA experte en psychologie relationnelle et développement personnel.
-Analyse les réponses au questionnaire "Archétype Amoureux" et fournis une analyse COMPLÈTE en FRANÇAIS.
-
-RÈGLES IMPORTANTES :
-- Réponds UNIQUEMENT en français
-- Remplis TOUTES les sections sans exception
-- Sois bienveillant/e mais honnête
-- Personnalise l'analyse selon les réponses données
-- Donne des conseils concrets et actionnables
-
-SECTIONS OBLIGATOIRES :
-1. Profil identifié (nom + pourcentage de correspondance)
-2. Analyse générale (4-5 phrases)
-3. Vos Forces (minimum 3 points)
-4. Vos Défis (minimum 3 points)
-5. Recommandations (minimum 3 conseils)
-6. Compatibilités (archétypes les plus compatibles)
-
-ARCHÉTYPES POSSIBLES (12) :
-- Le Passionné/La Passionnée (Amour intense et dévorant)
-- Le Romantique (Idéaliste et fleur bleue)
-- Le Partenaire (Équilibré et fiable)
-- L'Analyste (Réfléchi et stratégique)
-- L'Aventurier/L'Aventurière (Libre et spontané/e)
-- Le Papillon (Volage et charmeur/se)
-- Le Protecteur/La Protectrice (Dévoué/e et attentionné/e)
-- Le Nourricier/La Nourricière (Généreux/se et maternant/e)
-- L'Indépendant/e (Autonome et détaché/e)
-- Le Mystérieux/La Mystérieuse (Insaisissable et intrigant/e)
-- Le Loyal/La Loyale (Fidèle et engagé/e)
-- L'Idéaliste (Rêveur/se et en quête d'absolu)
-
-Format JSON de réponse :
-{
-  "profil_principal": "Nom de l'archétype",
-  "score": "XX",
-  "analyse_generale": "Paragraphe de 4-5 phrases",
-  "forces": ["Force 1", "Force 2", "Force 3"],
-  "defis": ["Défi 1", "Défi 2", "Défi 3"],
-  "recommandations": ["Conseil 1", "Conseil 2", "Conseil 3"],
-  "compatibilites": {
-    "tres_compatible": ["Profil A", "Profil B"],
-    "compatible": ["Profil C"],
-    "a_travailler": ["Profil D"]
-  }
-}`
-  },
-
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 5. TEST DE COMPATIBILITÉ — ANALYSE IA
+  // ═══════════════════════════════════════════════════════════════════════════
   'compatibility': {
     id: 'compatibility',
-    title: '❤️ Test de Compatibilité',
-    description: 'Découvrez votre profil relationnel et vos besoins en couple',
+    title: 'Test de Compatibilité',
+    description: 'Les dynamiques invisibles entre deux personnalités.',
+    introduction: 'Les dynamiques invisibles entre deux personnalités.',
     premium: true,
     featured: false,
+    hasAI: true,
+    archetypes: [],
+    resultStructure: {
+      title: 'Dynamique de Compatibilité',
+      sections: ['Cartographie Relationnelle', 'Zones de Fluidité', 'Points de Friction', 'Type de Dynamique', 'Clés de la Relation']
+    },
     questions: [
       {
-        id: 'q1',
-        text: 'Dans un couple, la communication c\'est :',
+        id: 'comp_q1',
+        text: 'Dans une relation, tu as besoin en priorité de :',
         type: 'single',
-        category: 'communication',
+        category: 'priority',
         options: [
-          'Essentiel, vous parlez de tout',
-          'Important mais vous gardez une part de mystère',
-          'Vous préférez les actes aux mots',
-          'Difficile pour vous'
+          'Sécurité et stabilité',
+          'Passion et intensité',
+          'Liberté et indépendance',
+          'Complicité et communication'
         ]
       },
       {
-        id: 'q2',
-        text: 'Votre façon de gérer les désaccords :',
+        id: 'comp_q2',
+        text: 'Face au conflit, tu :',
         type: 'single',
-        category: 'conflict_management',
+        category: 'conflict',
         options: [
-          'Discussion immédiate pour résoudre',
-          'Vous laissez retomber avant d\'en parler',
-          'Vous évitez les conflits',
-          'Vous avez du mal à ne pas vous emporter'
+          'Cherches à résoudre immédiatement',
+          'Prends du recul avant de réagir',
+          'Exprimes tes émotions intensément',
+          'Évites ou minimises'
         ]
       },
       {
-        id: 'q3',
-        text: 'Le temps passé ensemble idéalement :',
+        id: 'comp_q3',
+        text: 'Ton rythme de vie idéal :',
         type: 'single',
-        category: 'time_together',
+        category: 'rhythm',
         options: [
-          'Maximum, vous adorez être ensemble',
-          'Équilibré avec des moments solo',
-          'Vous avez besoin de beaucoup d\'espace',
-          'Ça dépend de votre humeur'
+          'Structuré, prévisible',
+          'Spontané, changeant',
+          'Un équilibre des deux',
+          'Je ne sais pas vraiment'
         ]
       },
       {
-        id: 'q4',
-        text: 'Les petites attentions au quotidien :',
+        id: 'comp_q4',
+        text: 'Ce qui te nourrit émotionnellement :',
         type: 'single',
-        category: 'daily_attention',
+        category: 'love_language',
         options: [
-          'Vous en donnez et en attendez beaucoup',
-          'Vous les appréciez avec modération',
-          'Ce n\'est pas votre priorité',
-          'Vous préférez les grands gestes'
+          'Le temps de qualité ensemble',
+          'Les mots et les déclarations',
+          'Les gestes et le contact physique',
+          'Les actes concrets au quotidien'
         ]
       },
       {
-        id: 'q5',
-        text: 'Votre vision de la fidélité :',
+        id: 'comp_q5',
+        text: 'Ton rapport à l\'espace personnel :',
         type: 'single',
-        category: 'fidelity',
+        category: 'space',
         options: [
-          'Absolue et non négociable',
-          'Importante mais vous pouvez discuter des limites',
-          'Vous croyez en la liberté dans le couple',
-          'Vous avez du mal avec les engagements'
+          'J\'ai besoin de beaucoup d\'espace',
+          'J\'ai besoin de peu d\'espace',
+          'Ça dépend des moments',
+          'Je m\'adapte à l\'autre'
         ]
       },
       {
-        id: 'q6',
-        text: 'Face aux amis/famille du partenaire :',
+        id: 'comp_q6',
+        text: 'Ce qui crée de la tension pour toi :',
         type: 'single',
-        category: 'social_integration',
+        category: 'tension',
         options: [
-          'Vous vous intégrez facilement',
-          'Vous faites des efforts mesurés',
-          'Vous préférez garder une distance',
-          'Vous êtes mal à l\'aise'
+          'Le silence ou le manque de communication',
+          'L\'excès de demandes ou de proximité',
+          'L\'imprévisibilité ou l\'instabilité',
+          'La routine ou l\'ennui'
         ]
       },
       {
-        id: 'q7',
-        text: 'Les projets d\'avenir ensemble :',
+        id: 'comp_q7',
+        text: 'Dans un couple, tu préfères :',
         type: 'single',
-        category: 'future_projects',
+        category: 'sharing',
         options: [
-          'Vous en parlez très tôt',
-          'Vous laissez venir naturellement',
-          'Vous évitez ce sujet',
-          'Ça vous fait peur'
+          'Tout partager',
+          'Avoir des espaces séparés',
+          'Un mélange équilibré',
+          'Ça dépend de la personne'
         ]
       },
       {
-        id: 'q8',
-        text: 'Ce qui est non négociable pour vous :',
+        id: 'comp_q8',
+        text: 'Ce que tu apportes naturellement :',
         type: 'single',
-        category: 'non_negotiable',
+        category: 'contribution',
         options: [
-          'Le respect et la communication',
-          'L\'indépendance et la confiance',
-          'La passion et l\'attraction',
-          'La stabilité et la sécurité'
+          'De la stabilité',
+          'De l\'intensité',
+          'De la légèreté',
+          'De la profondeur'
         ]
       }
     ],
-    analysisPrompt: `Tu es Astra, une IA experte en psychologie relationnelle et développement personnel.
-Analyse les réponses au questionnaire "Test de Compatibilité" et fournis une analyse COMPLÈTE en FRANÇAIS.
+    analysisPrompt: `Tu es un analyste de dynamiques relationnelles, spécialisé dans la compatibilité et les interactions de couple.
 
-RÈGLES IMPORTANTES :
-- Réponds UNIQUEMENT en français
-- Remplis TOUTES les sections sans exception
-- Sois bienveillant/e mais honnête
-- Personnalise l'analyse selon les réponses données
-- Donne des conseils concrets et actionnables
+Analyse les réponses pour créer une cartographie des besoins relationnels de cette personne.
 
-SECTIONS OBLIGATOIRES :
-1. Profil identifié (nom + pourcentage de correspondance)
-2. Analyse générale (4-5 phrases)
-3. Vos Forces (minimum 3 points)
-4. Vos Défis (minimum 3 points)
-5. Recommandations (minimum 3 conseils)
-6. Compatibilités (profils relationnels les plus compatibles)
+Structure ton analyse ainsi :
 
-PROFILS RELATIONNELS POSSIBLES :
-- Le Communicant (connexion par le dialogue)
-- L'Indépendant (besoin d'espace)
-- Le Fusionnel (besoin de proximité)
-- L'Équilibré (juste milieu)
+## Cartographie de Tes Besoins Relationnels
+Visualisation des zones prioritaires : sécurité, passion, liberté, communication. Ce qui est essentiel vs optionnel.
 
-Format JSON de réponse :
-{
-  "profil_principal": "Nom du profil",
-  "score": "XX",
-  "analyse_generale": "Paragraphe de 4-5 phrases",
-  "forces": ["Force 1", "Force 2", "Force 3"],
-  "defis": ["Défi 1", "Défi 2", "Défi 3"],
-  "recommandations": ["Conseil 1", "Conseil 2", "Conseil 3"],
-  "compatibilites": {
-    "tres_compatible": ["Profil A", "Profil B"],
-    "compatible": ["Profil C"],
-    "a_travailler": ["Profil D"]
-  }
-}`
+## Ce Que Tu Apportes
+Tes forces naturelles dans une relation, ce que tu offres spontanément.
+
+## Ce Dont Tu As Besoin
+Ce que tu attends de l'autre, tes besoins non négociables.
+
+## Zones de Friction Potentielles
+Les types de personnalités ou de dynamiques qui créent naturellement de la tension pour toi.
+
+## Dynamiques Relationnelles Idéales
+Le type de relation qui te correspond le mieux :
+- Complémentarité — Ce qui manque à l'un est présent chez l'autre
+- Miroir — Refléter les mêmes forces et les mêmes ombres
+- Tension Créative — Les différences créent du mouvement
+- Ancrage Mutuel — Se stabiliser l'un l'autre
+- Défi — Se pousser mutuellement hors de la zone de confort
+
+## Clés Pour Une Relation Durable
+Ce qui peut faire durer une relation avec toi.
+
+Ton : analytique mais chaleureux, précis mais nuancé. Pas de "match / no match" simpliste.`
   },
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 6. THÈME ASTRAL COMPLET — ANALYSE IA
+  // ═══════════════════════════════════════════════════════════════════════════
   'astral': {
     id: 'astral',
-    title: '🌟 Thème Astral Complet',
-    description: 'Analyse astrologique complète de votre personnalité amoureuse',
+    title: 'Thème Astral Complet',
+    description: 'Ta cartographie intérieure. Un véritable portrait astrologique.',
+    introduction: 'L\'astrologie n\'a jamais eu besoin de savoir où tu es né. Elle a besoin de savoir qui tu es.',
     premium: true,
     featured: true,
+    hasAI: true,
+    archetypes: [],
+    resultStructure: {
+      title: 'Mon Thème Astral',
+      sections: ['☉ Soleil', '☽ Lune', '☿ Mercure', '♀ Vénus', '♂ Mars', '♃ Jupiter', '♄ Saturne', 'Axes', 'Dynamique', 'Synthèse']
+    },
     questions: [
+      // BLOC 1 : IDENTITÉ ET VOLONTÉ (Soleil)
       {
-        id: 'q1',
-        text: 'Quel élément vous représente le mieux ?',
+        id: 'ast_q1',
+        text: 'Quand tu te sens le plus "toi-même", c\'est généralement :',
         type: 'single',
-        category: 'element',
+        category: 'sun_identity',
         options: [
-          '🔥 Feu - Passionné, impulsif, énergique',
-          '🌍 Terre - Stable, concret, sensuel',
-          '💨 Air - Intellectuel, communicatif, léger',
-          '💧 Eau - Émotif, intuitif, profond'
+          'Quand tu agis selon tes convictions, même seul contre tous',
+          'Quand tu es reconnu et apprécié par les autres',
+          'Quand tu crées quelque chose qui n\'existait pas avant',
+          'Quand tu te sens en paix, sans besoin de prouver quoi que ce soit'
         ]
       },
       {
-        id: 'q2',
-        text: 'En amour, vous êtes plutôt guidé/e par :',
+        id: 'ast_q2',
+        text: 'Ce qui te donne le sentiment d\'exister vraiment :',
         type: 'single',
-        category: 'guidance',
+        category: 'sun_need',
         options: [
-          'Votre cœur (émotions)',
-          'Votre tête (raison)',
-          'Votre instinct (ressenti)',
-          'Un mélange des trois'
+          'Accomplir des choses concrètes et visibles',
+          'Être compris profondément par quelqu\'un',
+          'Repousser tes propres limites',
+          'Contribuer à quelque chose de plus grand que toi'
         ]
       },
       {
-        id: 'q3',
-        text: 'Ce que vous recherchez chez un partenaire (signe compatible) :',
+        id: 'ast_q3',
+        text: 'Face à une décision de vie majeure, tu te fies d\'abord à :',
         type: 'single',
-        category: 'partner_search',
+        category: 'sun_guide',
         options: [
-          'Quelqu\'un qui vous stimule et vous challenge',
-          'Quelqu\'un de stable et fiable',
-          'Quelqu\'un d\'intellectuel et drôle',
-          'Quelqu\'un de profond et émotionnel'
+          'Ce qui fait sens pour toi, même si c\'est irrationnel',
+          'Ce qui est le plus logique et réaliste',
+          'Ce que ton instinct te dicte immédiatement',
+          'Ce qui te permettra de grandir, même si c\'est difficile'
+        ]
+      },
+      // BLOC 2 : MONDE ÉMOTIONNEL (Lune)
+      {
+        id: 'ast_q4',
+        text: 'Quand tu te sens vulnérable, tu as tendance à :',
+        type: 'single',
+        category: 'moon_protection',
+        options: [
+          'Te replier et attendre que ça passe',
+          'Chercher la présence de quelqu\'un de proche',
+          'T\'occuper pour ne pas y penser',
+          'Analyser ce qui se passe pour reprendre le contrôle'
         ]
       },
       {
-        id: 'q4',
-        text: 'Votre plus grand défi en amour selon vous :',
+        id: 'ast_q5',
+        text: 'Ce qui te procure un sentiment de sécurité profonde :',
         type: 'single',
-        category: 'challenge',
+        category: 'moon_security',
         options: [
-          'Canaliser votre impulsivité',
-          'Sortir de votre zone de confort',
-          'Vous engager émotionnellement',
-          'Gérer vos émotions intenses'
+          'Un lieu familier, des rituels, de la stabilité',
+          'Savoir que tu peux t\'adapter à tout',
+          'Être entouré de personnes qui te connaissent vraiment',
+          'Avoir un plan B, une sortie de secours'
         ]
       },
       {
-        id: 'q5',
-        text: 'La Lune influence vos émotions. Vous vous sentez :',
+        id: 'ast_q6',
+        text: 'Tes émotions sont généralement :',
         type: 'single',
-        category: 'moon',
+        category: 'moon_climate',
         options: [
-          'Stable émotionnellement',
-          'Changeant/e selon les périodes',
-          'Très sensible aux ambiances',
-          'Déconnecté/e de vos émotions'
+          'Intenses mais tu les gardes pour toi',
+          'Visibles et expressives',
+          'Stables, prévisibles',
+          'Changeantes, parfois contradictoires'
         ]
       },
       {
-        id: 'q6',
-        text: 'Vénus représente l\'amour. Vous aimez :',
+        id: 'ast_q7',
+        text: 'Ton rapport à ton passé :',
         type: 'single',
-        category: 'venus',
+        category: 'moon_memory',
         options: [
-          'Avec passion et intensité',
-          'Avec constance et fidélité',
-          'Avec légèreté et liberté',
-          'Avec profondeur et fusion'
+          'Tu y penses souvent, il te définit en partie',
+          'Tu préfères avancer, le passé est derrière',
+          'Tu en tires des leçons mais sans t\'y attarder',
+          'Il te hante parfois, certaines choses ne sont pas résolues'
+        ]
+      },
+      // BLOC 3 : PENSÉE ET COMMUNICATION (Mercure)
+      {
+        id: 'ast_q8',
+        text: 'Ta manière naturelle de réfléchir :',
+        type: 'single',
+        category: 'mercury_style',
+        options: [
+          'Rapide, tu fais des liens entre tout',
+          'Méthodique, étape par étape',
+          'Intuitive, les réponses te viennent sans savoir pourquoi',
+          'Critique, tu remets tout en question'
         ]
       },
       {
-        id: 'q7',
-        text: 'Mars représente le désir. Votre énergie sexuelle est :',
+        id: 'ast_q9',
+        text: 'Dans une conversation importante, tu :',
         type: 'single',
-        category: 'mars',
+        category: 'mercury_comm',
         options: [
-          'Intense et passionnée',
-          'Régulière et sensuelle',
-          'Variable et cérébrale',
-          'Profonde et émotionnelle'
+          'Écoutes d\'abord, parles ensuite',
+          'Prends facilement la parole et guides l\'échange',
+          'Observes les non-dits autant que les mots',
+          'Structures tes arguments avant de les exposer'
+        ]
+      },
+      // BLOC 4 : AMOUR ET ATTRACTION (Vénus)
+      {
+        id: 'ast_q10',
+        text: 'Ce qui te fait tomber amoureux/amoureuse :',
+        type: 'single',
+        category: 'venus_trigger',
+        options: [
+          'L\'intelligence, la conversation',
+          'L\'intensité, la passion',
+          'La douceur, la fiabilité',
+          'Le mystère, ce que tu ne comprends pas'
         ]
       },
       {
-        id: 'q8',
-        text: 'Votre compatibilité idéale :',
+        id: 'ast_q11',
+        text: 'Dans une relation, tu as besoin de :',
         type: 'single',
-        category: 'compatibility',
+        category: 'venus_need',
         options: [
-          'Signes de Feu (Bélier, Lion, Sagittaire)',
-          'Signes de Terre (Taureau, Vierge, Capricorne)',
-          'Signes d\'Air (Gémeaux, Balance, Verseau)',
-          'Signes d\'Eau (Cancer, Scorpion, Poissons)'
+          'Liberté et espace personnel',
+          'Fusion et intimité constante',
+          'Stabilité et engagement clair',
+          'Intensité et renouvellement perpétuel'
         ]
       },
       {
-        id: 'q9',
-        text: 'Ce qui vous décrit le mieux :',
+        id: 'ast_q12',
+        text: 'Ce que tu offres naturellement en amour :',
         type: 'single',
-        category: 'self_description',
+        category: 'venus_gift',
         options: [
-          'Leader naturel, besoin d\'admiration',
-          'Travailleur/se, besoin de sécurité',
-          'Social/e, besoin de stimulation intellectuelle',
-          'Empathique, besoin de connexion émotionnelle'
+          'De la loyauté, de la constance',
+          'De la passion, de l\'intensité',
+          'De l\'attention, du soin',
+          'De la stimulation, de l\'aventure'
+        ]
+      },
+      // BLOC 5 : DÉSIR ET ACTION (Mars)
+      {
+        id: 'ast_q13',
+        text: 'Face à un obstacle, ta première réaction :',
+        type: 'single',
+        category: 'mars_action',
+        options: [
+          'Tu fonces, quitte à te brûler',
+          'Tu contournes, tu trouves une autre voie',
+          'Tu analyses avant d\'agir',
+          'Tu attends le bon moment'
         ]
       },
       {
-        id: 'q10',
-        text: 'Votre façon de gérer les ruptures :',
+        id: 'ast_q14',
+        text: 'Ta colère :',
         type: 'single',
-        category: 'breakup',
+        category: 'mars_anger',
         options: [
-          'Vous passez vite à autre chose',
-          'Vous prenez le temps de digérer',
-          'Vous rationalisez et analysez',
-          'Vous vivez un deuil émotionnel profond'
+          'Explose puis retombe vite',
+          'Couve longtemps avant d\'éclater',
+          'Se transforme en action constructive',
+          'Tu la réprimes, elle sort autrement'
+        ]
+      },
+      // BLOC 6 : EXPANSION ET SENS (Jupiter)
+      {
+        id: 'ast_q15',
+        text: 'Ta vision de la vie tend vers :',
+        type: 'single',
+        category: 'jupiter_vision',
+        options: [
+          'L\'optimisme, tout finit par s\'arranger',
+          'Le réalisme, il faut voir les choses comme elles sont',
+          'Le questionnement permanent, rien n\'est acquis',
+          'La foi en quelque chose de plus grand'
         ]
       },
       {
-        id: 'q11',
-        text: 'Votre plus belle qualité amoureuse selon l\'astrologie :',
+        id: 'ast_q16',
+        text: 'Ce qui te donne envie de te lever le matin :',
         type: 'single',
-        category: 'quality',
+        category: 'jupiter_drive',
         options: [
-          'Votre courage et votre passion',
-          'Votre loyauté et votre sensualité',
-          'Votre charme et votre communication',
-          'Votre intuition et votre empathie'
+          'La possibilité d\'apprendre quelque chose de nouveau',
+          'Des objectifs concrets à atteindre',
+          'Les relations, les gens que tu vas voir',
+          'Un projet qui te dépasse'
+        ]
+      },
+      // BLOC 7 : STRUCTURE ET LIMITES (Saturne)
+      {
+        id: 'ast_q17',
+        text: 'Ton rapport au temps :',
+        type: 'single',
+        category: 'saturn_time',
+        options: [
+          'Tu as l\'impression qu\'il file trop vite',
+          'Tu le structures, tu planifies',
+          'Tu vis au présent, le futur viendra',
+          'Tu sens le poids du temps, parfois trop'
         ]
       },
       {
-        id: 'q12',
-        text: 'À quel moment te sens-tu le plus énergique ?',
+        id: 'ast_q18',
+        text: 'Ta plus grande peur profonde :',
         type: 'single',
-        category: 'energy_time',
+        category: 'saturn_fear',
         options: [
-          '🌅 Lever du soleil',
-          '☀️ Plein midi',
-          '🌆 Coucher du soleil',
-          '🌙 Nuit étoilée'
-        ]
-      },
-      {
-        id: 'q13',
-        text: 'Quelle phase de la lune te parle le plus ?',
-        type: 'single',
-        category: 'moon_phase',
-        options: [
-          '🌑 Nouvelle lune - Nouveaux départs',
-          '🌓 Premier quartier - Action',
-          '🌕 Pleine lune - Émotions',
-          '�� Dernier quartier - Lâcher prise'
-        ]
-      },
-      {
-        id: 'q14',
-        text: 'Ton rêve de vie idéale ?',
-        type: 'single',
-        category: 'life_dream',
-        options: [
-          'Aventure et découverte',
-          'Famille et stabilité',
-          'Liberté et créativité',
-          'Impact et sens'
-        ]
-      },
-      {
-        id: 'q15',
-        text: 'Comment voudrais-tu qu\'on se souvienne de toi ?',
-        type: 'single',
-        category: 'legacy',
-        options: [
-          'Quelqu\'un d\'inspirant',
-          'Quelqu\'un de fiable',
-          'Quelqu\'un de libre',
-          'Quelqu\'un de profond'
+          'Échouer et décevoir',
+          'Être abandonné ou rejeté',
+          'Perdre le contrôle',
+          'Passer à côté de ta vie'
         ]
       }
     ],
-    analysisPrompt: `Tu es Astra, une IA experte en astrologie et psychologie relationnelle.
-Analyse les réponses au questionnaire "Thème Astral Complet" et fournis une analyse COMPLÈTE en FRANÇAIS.
+    analysisPrompt: `Tu es un astrologue professionnel avec 20 ans d'expérience.
+À partir des réponses au questionnaire, tu dois reconstituer un thème astrologique complet et cohérent.
 
-RÈGLES IMPORTANTES :
-- Réponds UNIQUEMENT en français
-- Remplis TOUTES les sections sans exception
-- Sois bienveillant/e mais honnête
-- Personnalise l'analyse selon les réponses données
-- Donne des conseils concrets et actionnables
-- Analyse basée sur les éléments astrologiques : Soleil, Lune, Vénus, Mars
+RÈGLES ABSOLUES :
+- Ne jamais mentionner que tu "déduis" ou "interprètes" — parle comme si tu lisais un vrai thème natal
+- Utiliser le vocabulaire astrologique précis (planètes, signes)
+- Être spécifique, jamais vague
+- Identifier les tensions ET les harmonies
 
-SECTIONS OBLIGATOIRES :
-1. Profil identifié (élément dominant + pourcentage)
-2. Analyse générale (4-5 phrases)
-3. Vos Forces (minimum 3 points)
-4. Vos Défis (minimum 3 points)
-5. Recommandations (minimum 3 conseils)
-6. Compatibilités (signes/éléments les plus compatibles)
+STRUCTURE OBLIGATOIRE :
 
-ÉLÉMENTS DOMINANTS :
-- Feu (Bélier, Lion, Sagittaire) - Passion, action, spontanéité
-- Terre (Taureau, Vierge, Capricorne) - Stabilité, sensualité, pragmatisme
-- Air (Gémeaux, Balance, Verseau) - Intellect, communication, liberté
-- Eau (Cancer, Scorpion, Poissons) - Émotion, intuition, profondeur
+## ☉ SOLEIL — IDENTITÉ FONDAMENTALE
+**Soleil en [signe déduit]**
+- Fonction identitaire : [comment cette personne existe dans le monde]
+- Besoin fondamental : [ce sans quoi elle ne peut pas se sentir vivante]
+- Expression lumineuse vs Ombre solaire
 
-Format JSON de réponse :
-{
-  "profil_principal": "Élément dominant",
-  "score": "XX",
-  "analyse_generale": "Paragraphe de 4-5 phrases",
-  "forces": ["Force 1", "Force 2", "Force 3"],
-  "defis": ["Défi 1", "Défi 2", "Défi 3"],
-  "recommandations": ["Conseil 1", "Conseil 2", "Conseil 3"],
-  "compatibilites": {
-    "tres_compatible": ["Élément A", "Élément B"],
-    "compatible": ["Élément C"],
-    "a_travailler": ["Élément D"]
-  }
-}`
+## ☽ LUNE — MONDE ÉMOTIONNEL
+**Lune en [signe déduit]**
+- Sécurité émotionnelle et réactions instinctives
+- Rapport à l'intimité et mémoire émotionnelle
+
+## ☿ MERCURE — ARCHITECTURE MENTALE
+**Mercure en [signe déduit]**
+- Style cognitif et communication
+
+## ♀ VÉNUS — CŒUR ET ATTRACTION
+**Vénus en [signe déduit]**
+- Manière d'aimer, ce qui attire, valeurs relationnelles
+
+## ♂ MARS — DÉSIR ET VOLONTÉ
+**Mars en [signe déduit]**
+- Mode d'action, expression du désir, gestion de la colère
+
+## ♃ JUPITER — EXPANSION ET FOI
+**Jupiter en [signe déduit]**
+- Vision du monde, source d'expansion
+
+## ♄ SATURNE — STRUCTURE ET ÉPREUVES
+**Saturne en [signe déduit]**
+- Peurs structurantes, leçon de vie, maturité acquise
+
+## AXES ASTROLOGIQUES
+- Axe Identité/Relation
+- Axe Intime/Public
+- Axe Contrôle/Lâcher-prise
+
+## DYNAMIQUE GLOBALE
+- Forces dominantes (2-3 énergies)
+- Tensions internes
+- **Travail d'âme** : ce que cette personne est venue apprendre
+
+## SYNTHÈSE ASTRALE
+[Paragraphe de 150-200 mots : portrait fluide, professionnel, comme si tu parlais à un client]
+
+TON : expert mais accessible, profond mais concret, jamais ésotérique new-age.
+Ce thème doit être assez riche pour être relu pendant des années.`
   }
 };
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// FONCTIONS UTILITAIRES
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export function getQuestionnaire(id: string): Questionnaire | undefined {
+  return questionnaires[id];
+}
+
+export function getAllQuestionnaires(): Questionnaire[] {
+  return Object.values(questionnaires);
+}
+
+export function getFreeQuestionnaires(): Questionnaire[] {
+  return Object.values(questionnaires).filter(q => !q.premium);
+}
+
+export function getPremiumQuestionnaires(): Questionnaire[] {
+  return Object.values(questionnaires).filter(q => q.premium);
+}
+
+export function getAIQuestionnaires(): Questionnaire[] {
+  return Object.values(questionnaires).filter(q => q.hasAI);
+}
+
+export function getQuestionnaireArchetypes(id: string): Archetype[] {
+  return questionnaires[id]?.archetypes || [];
+}
