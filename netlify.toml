@@ -1,3 +1,4 @@
+# Configuration Netlify pour AstraLoves
 [build]
   base = "project"
   publish = "dist"
@@ -6,8 +7,17 @@
 [build.environment]
   NODE_VERSION = "20"
 
+# Redirections pour SPA (Single Page App)
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+
+# Headers pour sécurité
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "no-referrer"
 

@@ -1,0 +1,63 @@
+{
+  "questionnaires": [
+    {
+      "id": "attachement",
+      "icon": "heart",
+      "title": "Questionnaire style d'attachement",
+      "description": "15 questions posées par Astra en chat, résultat détaillé",
+      "questionCount": 15,
+      "color": "#E53935",
+      "isPremium": true
+    },
+    {
+      "id": "compatibilite",
+      "icon": "sparkles",
+      "title": "Test compatibilité amoureuse",
+      "description": "20 questions, score + conseils personnalisés",
+      "questionCount": 20,
+      "color": "#E53935",
+      "isPremium": true
+    },
+    {
+      "id": "archetype",
+      "icon": "star",
+      "title": "Archetype amoureux",
+      "description": "15 questions, type + portrait complet",
+      "questionCount": 15,
+      "color": "#E53935",
+      "isPremium": true
+    },
+    {
+      "id": "astral",
+      "icon": "sparkles",
+      "title": "Thème astral amoureux complet",
+      "description": "Date naissance, Vénus-Mars-7e maison, analyse complète",
+      "questionCount": 0,
+      "color": "#E53935",
+      "isPremium": true
+    }
+  ],
+  "subscription": {
+    "price": "9,99 €",
+    "period": "mois",
+    "titleColor": "#E53935",
+    "badgeColor": "#E53935",
+    "features": [
+      "30 messages / 24h en glissante",
+      "Questionnaire style d'attachement",
+      "Test de compatibilité amoureuse",
+      "Quel est ton archétype amoureux ?",
+      "Ton thème astral amoureux complet",
+      "Analyse de sentiment poussée",
+      "Mémoire complète + historique illimité",
+      "Résiliation à tout moment (effet immédiat, sans frais)"
+    ]
+  },
+  "colors": {
+    "primary": "#E53935",
+    "secondary": "#FF69B4",
+    "background": "#000000",
+    "text": "#FFFFFF",
+    "textMuted": "#9CA3AF"
+  }
+}

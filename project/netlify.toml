@@ -1,0 +1,23 @@
+# Configuration Netlify pour AstraLoves
+[build]
+  # Le code source est dans le dossier "project"
+  base = "project"
+  
+  # Commande de build
+  command = "npm install --force && npm run build"
+  
+  # Dossier de sortie après build
+  publish = "dist"
+
+# Redirections pour SPA (Single Page App)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Variables d'environnement (à définir dans Netlify UI)
+# VITE_SUPABASE_URL
+# VITE_SUPABASE_ANON_KEY
+# VITE_STRIPE_PUBLIC_KEY
+# VITE_STRIPE_PRICE_PREMIUM
+# VITE_STRIPE_PRICE_ELITE

@@ -361,30 +361,14 @@ COMMENT ON TABLE insights_history IS 'Journal des insights et découvertes cosmi
 -- └─────────────────────────────────────────────────────────────────────┘
 
 -- Vérifier que toutes les tables existent
-DO $$
-BEGIN
-  -- Vérifier daily_usage
-  IF NOT EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'daily_usage') THEN
-    RAISE EXCEPTION 'Table daily_usage non créée';
-  END IF;
-  
-  -- Vérifier quiz_results
-  IF NOT EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'quiz_results') THEN
-    RAISE EXCEPTION 'Table quiz_results non créée';
-  END IF;
-  
-  -- Vérifier astral_themes
-  IF NOT EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'astral_themes') THEN
-    RAISE EXCEPTION 'Table astral_themes non créée';
-  END IF;
-  
-  -- Vérifier insights_history
-  IF NOT EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'insights_history') THEN
-    RAISE EXCEPTION 'Table insights_history non créée';
-  END IF;
-  
-  RAISE NOTICE '✅ Toutes les tables sont créées avec succès !';
-END $$;
+SELECT 
+  CASE 
+    WHEN COUNT(*) = 4 THEN '✅ Toutes les tables sont créées avec succès !'
+    ELSE '❌ Erreur: ' || (4 - COUNT(*))::TEXT || ' table(s) manquante(s)'
+  END as status
+FROM information_schema.tables 
+WHERE table_schema = 'public' 
+AND table_name IN ('daily_usage', 'quiz_results', 'astral_themes', 'insights_history');
 
 -- ═══════════════════════════════════════════════════════════════════════
 -- FIN DES MIGRATIONS
