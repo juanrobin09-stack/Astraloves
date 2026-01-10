@@ -6,6 +6,7 @@ import { getUserQuizResults } from '../lib/quizResultsService';
 import { quizzes, Quiz, getQuizById } from '../data/quizData';
 import QuizTestPage from './QuizTestPage';
 import QuizResultsPage from './QuizResultsPage';
+import { supabase } from '../lib/supabase';
 
 type QuestionnairesPageProps = {
   onBack: () => void;
@@ -19,6 +20,8 @@ export default function QuestionnairesPage({ onBack, onNavigate }: Questionnaire
   const [activeView, setActiveView] = useState<'list' | 'test' | 'results'>('list');
   const [activeQuizId, setActiveQuizId] = useState<string | null>(null);
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [requiredTier, setRequiredTier] = useState<'premium' | 'premium_elite'>('premium');
 
   useEffect(() => {
     loadCompletedQuizzes();
@@ -39,8 +42,13 @@ export default function QuestionnairesPage({ onBack, onNavigate }: Questionnaire
   };
 
   const handleNavigate = (page: string, data?: any) => {
+    if (page === 'upgrade-required') {
+      setRequiredTier(data?.requiredTier || 'premium');
+      setShowUpgradeModal(true);
+      return;
+    }
     if (page === 'subscriptions') {
-      if (onNavigate) onNavigate('subscriptions');
+      setShowUpgradeModal(true);
       return;
     }
     if (page === 'quiz-test') {
@@ -125,7 +133,7 @@ export default function QuestionnairesPage({ onBack, onNavigate }: Questionnaire
         }}
         onClick={() => {
           if (!canAccess) {
-            handleNavigate('subscriptions');
+            handleNavigate('upgrade-required', { requiredTier: quiz.requiredTier });
           } else if (completed) {
             // Option de refaire ou voir résultats
           } else {
@@ -437,6 +445,178 @@ export default function QuestionnairesPage({ onBack, onNavigate }: Questionnaire
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {advancedQuizzes.map(renderQuizCard)}
+          </div>
+        </div>
+      )}
+
+      {/* Modal Upgrade Premium/Elite */}
+      {showUpgradeModal && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.95)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px'
+          }}
+          onClick={() => setShowUpgradeModal(false)}
+        >
+          <div 
+            style={{
+              background: '#0A0A0A',
+              border: '1px solid rgba(230, 57, 70, 0.3)',
+              borderRadius: '20px',
+              padding: '40px',
+              maxWidth: '600px',
+              width: '100%',
+              position: 'relative'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close button */}
+            <button
+              onClick={() => setShowUpgradeModal(false)}
+              style={{
+                position: 'absolute',
+                top: '20px',
+                right: '20px',
+                background: 'transparent',
+                border: 'none',
+                color: '#E63946',
+                fontSize: '24px',
+                cursor: 'pointer',
+                padding: '5px 10px'
+              }}
+            >
+              ✕
+            </button>
+
+            {/* Titre */}
+            <h2 style={{
+              color: '#E63946',
+              fontSize: '28px',
+              fontWeight: 'bold',
+              marginBottom: '10px',
+              textAlign: 'center'
+            }}>
+              Débloquer l'Analyse IA
+            </h2>
+
+            <p style={{
+              color: '#7A7A7A',
+              fontSize: '15px',
+              textAlign: 'center',
+              marginBottom: '30px'
+            }}>
+              {requiredTier === 'premium_elite' 
+                ? 'Ce questionnaire nécessite Premium+ Elite'
+                : 'Ce questionnaire nécessite Premium'}
+            </p>
+
+            {/* Plans */}
+            <div style={{ display: 'flex', gap: '20px', flexDirection: 'column' }}>
+              {/* Premium Plan */}
+              <div
+                style={{
+                  background: requiredTier === 'premium' ? 'rgba(230, 57, 70, 0.1)' : '#0D0D0D',
+                  border: `2px solid ${requiredTier === 'premium' ? '#E63946' : '#1A1A1A'}`,
+                  borderRadius: '16px',
+                  padding: '24px',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
+                }}
+                onClick={async () => {
+                  try {
+                    const { data, error } = await supabase.functions.invoke('create-checkout', {
+                      body: { priceId: import.meta.env.VITE_STRIPE_PRICE_PREMIUM }
+                    });
+                    if (error) throw error;
+                    if (data?.url) window.location.href = data.url;
+                  } catch (err) {
+                    console.error('Erreur Stripe:', err);
+                    alert('Erreur lors du paiement. Réessayez.');
+                  }
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                  <h3 style={{ color: '#FFFFFF', fontSize: '20px', fontWeight: 'bold', margin: 0 }}>
+                    Premium
+                  </h3>
+                  <span style={{ color: '#E63946', fontSize: '24px', fontWeight: 'bold' }}>
+                    9,99€
+                    <span style={{ fontSize: '14px', color: '#7A7A7A', fontWeight: 'normal' }}>/mois</span>
+                  </span>
+                </div>
+                <ul style={{ color: '#AAAAAA', fontSize: '14px', margin: 0, padding: '0 0 0 20px' }}>
+                  <li>40 messages Astra/jour</li>
+                  <li>Questionnaires IA avancés</li>
+                  <li>Analyses approfondies</li>
+                  <li>Filtres de recherche étendus</li>
+                </ul>
+              </div>
+
+              {/* Elite Plan */}
+              <div
+                style={{
+                  background: requiredTier === 'premium_elite' ? 'rgba(230, 57, 70, 0.1)' : '#0D0D0D',
+                  border: `2px solid ${requiredTier === 'premium_elite' ? '#E63946' : '#1A1A1A'}`,
+                  borderRadius: '16px',
+                  padding: '24px',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  position: 'relative'
+                }}
+                onClick={async () => {
+                  try {
+                    const { data, error } = await supabase.functions.invoke('create-checkout', {
+                      body: { priceId: import.meta.env.VITE_STRIPE_PRICE_ELITE }
+                    });
+                    if (error) throw error;
+                    if (data?.url) window.location.href = data.url;
+                  } catch (err) {
+                    console.error('Erreur Stripe:', err);
+                    alert('Erreur lors du paiement. Réessayez.');
+                  }
+                }}
+              >
+                <div style={{
+                  position: 'absolute',
+                  top: '-10px',
+                  right: '20px',
+                  background: 'linear-gradient(135deg, #E63946, #FF6B6B)',
+                  color: '#FFFFFF',
+                  padding: '4px 12px',
+                  borderRadius: '12px',
+                  fontSize: '11px',
+                  fontWeight: 'bold',
+                  letterSpacing: '0.5px'
+                }}>
+                  RECOMMANDÉ
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                  <h3 style={{ color: '#FFFFFF', fontSize: '20px', fontWeight: 'bold', margin: 0 }}>
+                    Premium+ Elite
+                  </h3>
+                  <span style={{ color: '#E63946', fontSize: '24px', fontWeight: 'bold' }}>
+                    14,99€
+                    <span style={{ fontSize: '14px', color: '#7A7A7A', fontWeight: 'normal' }}>/mois</span>
+                  </span>
+                </div>
+                <ul style={{ color: '#AAAAAA', fontSize: '14px', margin: 0, padding: '0 0 0 20px' }}>
+                  <li>65 messages Astra/jour</li>
+                  <li>TOUS les questionnaires IA</li>
+                  <li>Thème Astral Complet</li>
+                  <li>Profil ultra-optimisé</li>
+                  <li>Mode incognito</li>
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
       )}
