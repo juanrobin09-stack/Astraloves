@@ -832,7 +832,7 @@ const compatibilityQuiz: Quiz = {
   icon: 'Sparkles',
   isPremium: true,
   isAIAnalysis: true,
-  requiredTier: 'premium_elite',
+  requiredTier: 'premium',
   questionCount: 8,
   category: 'Analyse IA',
   analysisTemplate: {
@@ -949,7 +949,7 @@ const compatibilityQuiz: Quiz = {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 const astralQuiz: Quiz = {
-  id: 'astral-theme',
+  id: 'astral',
   name: 'Thème Astral Complet',
   title: 'Thème Astral Complet',
   description: 'Ta cartographie intérieure. Un véritable portrait astrologique.',
