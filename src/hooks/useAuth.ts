@@ -23,8 +23,11 @@ export const useAuth = () => {
           setProfile(profileData);
           setSubscription(subscriptionData);
         }
-      } catch (error) {
-        console.error('Auth load error:', error);
+      } catch (error: any) {
+        // Ne log que si ce n'est pas juste une absence de session
+        if (!error?.message?.includes('session')) {
+          console.error('Auth load error:', error);
+        }
       } finally {
         setIsLoading(false);
       }

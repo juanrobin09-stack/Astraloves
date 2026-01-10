@@ -42,9 +42,19 @@ export const authService = {
   },
 
   async getCurrentUser() {
-    const { data: { user }, error } = await supabase.auth.getUser();
-    if (error) handleSupabaseError(error);
-    return user;
+    try {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      // Si pas de session, c'est normal, retourner null
+      if (error && error.message.includes('session')) {
+        return null;
+      }
+      if (error) handleSupabaseError(error);
+      return user;
+    } catch (error) {
+      // Gérer gracieusement l'absence de session
+      console.log('No active session');
+      return null;
+    }
   },
 
   async getProfile(userId: string): Promise<Profile | null> {

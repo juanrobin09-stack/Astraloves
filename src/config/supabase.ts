@@ -20,6 +20,9 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 });
 
 export const handleSupabaseError = (error: any): never => {
-  console.error('Supabase error:', error);
+  // Ne pas logger les erreurs de session manquante (c'est normal)
+  if (!error?.message?.includes('session')) {
+    console.error('Supabase error:', error);
+  }
   throw new Error(error.message || 'Une erreur est survenue');
 };
