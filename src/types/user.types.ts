@@ -93,6 +93,11 @@ export interface Quota {
   astraMessagesLimit: number;
   universClicksUsed: number;
   universClicksLimit: number;
+  // Snake_case aliases for Supabase compatibility
+  astra_messages_used?: number;
+  astra_messages_limit?: number;
+  univers_clicks_used?: number;
+  univers_clicks_limit?: number;
   resetsAt: string;
   createdAt: string;
   updatedAt: string;
