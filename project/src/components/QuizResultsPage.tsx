@@ -1,79 +1,7 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Sparkles, Flame, TrendingUp, Circle } from 'lucide-react';
+import { ArrowLeft, Sparkles, Star, Zap, Target, Lightbulb, Crown } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserQuizResults } from '../lib/quizResultsService';
-
-interface ProfileLevel {
-  level: 'Élevé' | 'Modéré' | 'Léger';
-  icon: React.ReactNode;
-  color: string;
-  bgColor: string;
-  borderColor: string;
-  description: string;
-}
-
-const getProfileLevel = (percentage: number): ProfileLevel => {
-  if (percentage >= 70) {
-    return {
-      level: 'Élevé',
-      icon: <Flame className="w-8 h-8" />,
-      color: '#E63946',
-      bgColor: 'rgba(230, 57, 70, 0.1)',
-      borderColor: '#E63946',
-      description: 'Profil excellent'
-    };
-  } else if (percentage >= 40) {
-    return {
-      level: 'Modéré',
-      icon: <TrendingUp className="w-8 h-8" />,
-      color: '#F77F00',
-      bgColor: 'rgba(247, 127, 0, 0.1)',
-      borderColor: '#F77F00',
-      description: 'Bon niveau'
-    };
-  } else {
-    return {
-      level: 'Léger',
-      icon: <Circle className="w-8 h-8" />,
-      color: '#06B6D4',
-      bgColor: 'rgba(6, 182, 212, 0.1)',
-      borderColor: '#06B6D4',
-      description: 'À améliorer'
-    };
-  }
-};
-
-function ProfileScoreBadge({ score }: { score: number }) {
-  const profileLevel = getProfileLevel(score);
-
-  return (
-    <div className="flex justify-center my-6">
-      <div
-        className="flex flex-col items-center gap-3 px-8 py-6 rounded-2xl border-2 transition-all duration-300"
-        style={{
-          backgroundColor: profileLevel.bgColor,
-          borderColor: profileLevel.borderColor,
-          boxShadow: `0 8px 32px ${profileLevel.bgColor}`,
-        }}
-      >
-        <div style={{ color: profileLevel.color }} className="animate-pulse">
-          {profileLevel.icon}
-        </div>
-        <div className="text-center">
-          <div
-            className="text-3xl font-black mb-1"
-            style={{ color: profileLevel.color }}
-          >
-            {profileLevel.level}
-          </div>
-          <div className="text-sm text-gray-400 font-semibold">
-            {profileLevel.description}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 interface QuizResultsPageProps {
   quizId: string;
@@ -84,26 +12,31 @@ interface QuizResultsPageProps {
 const getNormalizedData = (resultData: any) => {
   if (!resultData) return null;
 
-  const isNestedFormat = resultData.analysis && typeof resultData.analysis === 'object';
-
-  if (isNestedFormat) {
+  // Nouveau format avec analysis
+  if (resultData.analysis) {
     return {
-      title: resultData.analysis.seduction_style || 'Ton profil',
-      description: resultData.analysis.seduction_style || '',
-      mainScore: resultData.analysis.total_score || 75,
-      strengths: Array.isArray(resultData.analysis.strengths) ? resultData.analysis.strengths : [],
-      traits: Array.isArray(resultData.analysis.personality_traits) ? resultData.analysis.personality_traits : [],
-      tips: Array.isArray(resultData.analysis.recommendations) ? resultData.analysis.recommendations : []
+      title: resultData.title || resultData.analysis.title || 'Ton Profil',
+      subtitle: resultData.subtitle || resultData.analysis.subtitle || '',
+      analysis: resultData.analysis.analysis || resultData.analysis || '',
+      strengths: Array.isArray(resultData.analysis.strengths) ? resultData.analysis.strengths : 
+                 Array.isArray(resultData.strengths) ? resultData.strengths : [],
+      challenges: Array.isArray(resultData.analysis.challenges) ? resultData.analysis.challenges :
+                  Array.isArray(resultData.challenges) ? resultData.challenges : [],
+      recommendations: Array.isArray(resultData.analysis.recommendations) ? resultData.analysis.recommendations :
+                       Array.isArray(resultData.recommendations) ? resultData.recommendations : [],
+      percentage: resultData.percentage || resultData.analysis.percentage || 75
     };
   }
 
+  // Format direct
   return {
-    title: resultData.mainResult || 'Ton profil',
-    description: resultData.description || '',
-    mainScore: resultData.mainScore || resultData.percentage || 75,
+    title: resultData.title || 'Ton Profil',
+    subtitle: resultData.subtitle || '',
+    analysis: resultData.analysis || '',
     strengths: Array.isArray(resultData.strengths) ? resultData.strengths : [],
-    traits: Array.isArray(resultData.traits) ? resultData.traits : [],
-    tips: Array.isArray(resultData.recommendations) ? resultData.recommendations : []
+    challenges: Array.isArray(resultData.challenges) ? resultData.challenges : [],
+    recommendations: Array.isArray(resultData.recommendations) ? resultData.recommendations : [],
+    percentage: resultData.percentage || 75
   };
 };
 
@@ -114,27 +47,35 @@ export default function QuizResultsPage({ quizId, onBack, onNavigate }: QuizResu
 
   useEffect(() => {
     loadResult();
-  }, [user, quizId]);
+  }, [quizId, user]);
 
   const loadResult = async () => {
     if (!user) return;
-
+    
     setLoading(true);
-    const results = await getUserQuizResults(user.id);
-    const quizResult = results.find((r: any) => r.quiz_id === quizId);
-
-    if (quizResult) {
-      setResult(quizResult);
+    try {
+      const results = await getUserQuizResults(user.id);
+      const latestResult = results.find((r: any) => r.quiz_id === quizId) || results[0];
+      
+      console.log('[QuizResultsPage] Result:', latestResult);
+      setResult(latestResult);
+    } catch (error) {
+      console.error('[QuizResultsPage] Error loading result:', error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
+  };
+
+  const goToMyResults = () => {
+    onNavigate('my-results');
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#0F1419] to-[#1A1A2E] pb-24 flex items-center justify-center">
+      <div className="h-screen bg-black flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin mb-4" />
-          <p className="text-white">Chargement...</p>
+          <Sparkles className="w-12 h-12 text-purple-500 animate-spin mx-auto mb-4" />
+          <div className="text-gray-400 font-semibold">Chargement de ton analyse...</div>
         </div>
       </div>
     );
@@ -142,152 +83,200 @@ export default function QuizResultsPage({ quizId, onBack, onNavigate }: QuizResu
 
   if (!result) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#0F1419] to-[#1A1A2E] pb-24 flex items-center justify-center">
-        <div className="text-center p-6">
-          <p className="text-white mb-4">Résultat non trouvé</p>
-          <button
-            onClick={onBack}
-            className="px-6 py-3 bg-gradient-to-r from-red-600 to-pink-600 rounded-xl text-white font-semibold hover:scale-105 transition-all"
-          >
-            Retour
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const analysis = getNormalizedData(result.result_data);
-
-  if (!analysis) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-[#0F1419] to-[#1A1A2E] pb-24 flex items-center justify-center">
-        <div className="text-center p-6">
-          <p className="text-white mb-4">Données incomplètes</p>
-          <button
-            onClick={onBack}
-            className="px-6 py-3 bg-gradient-to-r from-red-600 to-pink-600 rounded-xl text-white font-semibold hover:scale-105 transition-all"
-          >
-            Retour
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const quizEmojis: Record<string, string> = {
-    'first-impression': '👋',
-    'seduction-test': '💋',
-    'attachment-style': '💕',
-    'love-archetype': '🌟',
-    'compatibility-test': '❤️',
-    'astral-theme': '✨'
-  };
-
-  const emoji = quizEmojis[quizId] || '🎉';
-
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0F1419] to-[#1A1A2E] pb-24">
-
-      <div className="p-4 border-b border-red-500/10">
+      <div className="h-screen bg-black flex flex-col items-center justify-center p-6">
+        <div className="text-6xl mb-4">🔮</div>
+        <h2 className="text-2xl font-black text-white mb-2">Résultat introuvable</h2>
+        <p className="text-gray-400 mb-6">Aucune analyse n'a été trouvée pour ce questionnaire.</p>
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-4"
+          className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-xl font-bold"
         >
-          <ArrowLeft className="w-5 h-5" />
-          Retour aux questionnaires
+          Retour
         </button>
       </div>
+    );
+  }
 
-      <div className="p-6">
+  const normalized = getNormalizedData(result.result_data);
 
-        <div className="flex justify-center mb-6">
-          <div className="bg-purple-500/20 border border-purple-500/50 px-4 py-2 rounded-full flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-purple-400" />
-            <span className="text-purple-400 text-sm font-bold">
-              Analysé par Astra IA
-            </span>
+  if (!normalized) {
+    return (
+      <div className="h-screen bg-black flex flex-col items-center justify-center p-6">
+        <div className="text-6xl mb-4">⚠️</div>
+        <h2 className="text-2xl font-black text-white mb-2">Erreur de format</h2>
+        <p className="text-gray-400 mb-6">Les données du résultat sont invalides.</p>
+        <button
+          onClick={onBack}
+          className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-xl font-bold"
+        >
+          Retour
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-black via-slate-950 to-black pb-24">
+      {/* Header */}
+      <div className="sticky top-0 z-50 bg-black/80 backdrop-blur-lg border-b border-slate-800">
+        <div className="flex items-center p-4">
+          <button
+            onClick={onBack}
+            className="p-2 hover:bg-slate-800 rounded-full transition-colors"
+          >
+            <ArrowLeft className="w-6 h-6 text-white" />
+          </button>
+          <div className="flex-1 text-center">
+            <div className="flex items-center justify-center gap-2">
+              <Sparkles className="w-5 h-5 text-purple-400" />
+              <h1 className="text-lg font-black bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
+                Analysé par ASTRA IA
+              </h1>
+            </div>
           </div>
+          <div className="w-10" />
         </div>
+      </div>
 
-        <div className="text-center mb-8">
-          <div className="text-7xl mb-4">{emoji}</div>
-          <h1 className="text-white text-3xl font-black mb-2">
-            {analysis.title}
-          </h1>
-        </div>
-
-        <div className="bg-gradient-to-br from-red-900/30 to-pink-900/20 border border-red-500/30 rounded-3xl p-6 sm:p-8 mb-6">
-
-          <ProfileScoreBadge score={analysis.mainScore} />
-
-          {analysis.description && (
-            <p className="text-gray-300 text-center text-sm sm:text-base leading-relaxed mb-6">
-              {analysis.description}
+      <div className="p-4 space-y-6">
+        {/* Titre principal */}
+        <div className="text-center space-y-3 pt-6">
+          <div className="text-5xl mb-4">👁️</div>
+          <h2 className="text-3xl font-black text-white leading-tight">
+            {normalized.title}
+          </h2>
+          {normalized.subtitle && (
+            <p className="text-lg text-gray-400 italic">
+              {normalized.subtitle}
             </p>
           )}
-
-          {analysis.strengths && analysis.strengths.length > 0 && (
-            <div className="mb-6 pt-6 border-t border-white/10">
-              <h3 className="text-white font-bold mb-3 flex items-center gap-2">
-                <span>✨</span> Points forts
-              </h3>
-              <div className="space-y-2">
-                {analysis.strengths.map((strength: string, i: number) => (
-                  <div key={i} className="flex items-start gap-2 bg-white/5 rounded-xl p-3">
-                    <span className="text-green-400 flex-shrink-0">✓</span>
-                    <span className="text-gray-200 text-sm">{strength}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {analysis.traits && analysis.traits.length > 0 && (
-            <div className="mb-6 pt-6 border-t border-white/10">
-              <h3 className="text-white font-bold mb-3">⭐ Traits caractéristiques</h3>
-              <div className="flex flex-wrap gap-2">
-                {analysis.traits.map((trait: string, i: number) => (
-                  <span
-                    key={i}
-                    className="bg-gradient-to-r from-pink-500/20 to-purple-500/20 border border-pink-500/30 text-white text-xs px-3 py-1.5 rounded-full"
-                  >
-                    {trait}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {analysis.tips && analysis.tips.length > 0 && (
-            <div className="pt-6 border-t border-white/10">
-              <h3 className="text-white font-bold mb-3 flex items-center gap-2">
-                <span>💡</span> Conseils personnalisés
-              </h3>
-              <div className="space-y-3">
-                {analysis.tips.map((tip: string, i: number) => (
-                  <div key={i} className="bg-gradient-to-br from-red-500/10 to-pink-500/10 border border-red-500/20 rounded-xl p-4">
-                    <p className="text-gray-200 text-sm">{tip}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
-        <div className="space-y-3">
+        {/* Score */}
+        {normalized.percentage && (
+          <div className="bg-gradient-to-br from-purple-900/30 to-pink-900/30 backdrop-blur-xl rounded-3xl p-6 border border-purple-500/20">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm text-gray-400 font-semibold">Score Global</span>
+              <span className="text-3xl font-black bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
+                {normalized.percentage}%
+              </span>
+            </div>
+            <div className="h-3 bg-slate-800/50 rounded-full overflow-hidden border border-slate-700">
+              <div
+                className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-500 relative"
+                style={{ width: `${normalized.percentage}%` }}
+              >
+                <div className="absolute inset-0 bg-white/20 animate-pulse" />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Analyse ASTRA */}
+        {normalized.analysis && (
+          <div className="bg-slate-900/50 backdrop-blur-xl rounded-3xl p-6 border border-slate-700/50">
+            <h3 className="text-lg font-black text-white mb-4 flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-purple-400" />
+              Analyse ASTRA
+            </h3>
+            <div className="prose prose-invert max-w-none">
+              <p className="text-gray-300 leading-relaxed whitespace-pre-wrap">
+                {normalized.analysis}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Forces */}
+        {normalized.strengths && normalized.strengths.length > 0 && (
+          <div className="bg-gradient-to-br from-green-900/20 to-emerald-900/20 backdrop-blur-xl rounded-3xl p-6 border border-green-500/20">
+            <h3 className="text-lg font-black text-white mb-4 flex items-center gap-2">
+              <Zap className="w-5 h-5 text-green-400" />
+              💪 Tes Forces
+            </h3>
+            <div className="space-y-3">
+              {normalized.strengths.map((strength: string, i: number) => (
+                <div
+                  key={i}
+                  className="bg-green-950/30 text-green-300 px-4 py-3 rounded-xl border border-green-800/50 flex items-start gap-2"
+                >
+                  <span className="text-green-400 mt-0.5 flex-shrink-0">✨</span>
+                  <span className="flex-1 text-sm leading-relaxed">{strength}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Défis */}
+        {normalized.challenges && normalized.challenges.length > 0 && (
+          <div className="bg-gradient-to-br from-orange-900/20 to-red-900/20 backdrop-blur-xl rounded-3xl p-6 border border-orange-500/20">
+            <h3 className="text-lg font-black text-white mb-4 flex items-center gap-2">
+              <Target className="w-5 h-5 text-orange-400" />
+              ⚠️ Tes Défis
+            </h3>
+            <div className="space-y-3">
+              {normalized.challenges.map((challenge: string, i: number) => (
+                <div
+                  key={i}
+                  className="bg-orange-950/30 text-orange-300 px-4 py-3 rounded-xl border border-orange-800/50 flex items-start gap-2"
+                >
+                  <span className="text-orange-400 mt-0.5 flex-shrink-0">→</span>
+                  <span className="flex-1 text-sm leading-relaxed">{challenge}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Recommandations */}
+        {normalized.recommendations && normalized.recommendations.length > 0 && (
+          <div className="bg-gradient-to-br from-blue-900/20 to-cyan-900/20 backdrop-blur-xl rounded-3xl p-6 border border-blue-500/20">
+            <h3 className="text-lg font-black text-white mb-4 flex items-center gap-2">
+              <Lightbulb className="w-5 h-5 text-blue-400" />
+              💡 Recommandations
+            </h3>
+            <div className="space-y-3">
+              {normalized.recommendations.map((rec: string, i: number) => (
+                <div
+                  key={i}
+                  className="bg-blue-950/30 text-blue-300 px-4 py-3 rounded-xl border border-blue-800/50 flex items-start gap-2"
+                >
+                  <span className="text-blue-400 mt-0.5 flex-shrink-0">💡</span>
+                  <span className="flex-1 text-sm leading-relaxed">{rec}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* CTA */}
+        <div className="space-y-3 pt-4">
           <button
-            onClick={() => onNavigate('results')}
-            className="w-full py-4 bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-500 hover:to-pink-500 rounded-xl text-white font-bold transition-all hover:scale-105"
+            onClick={goToMyResults}
+            className="w-full bg-gradient-to-r from-pink-600 to-purple-600 text-white px-6 py-4 rounded-2xl font-bold hover:scale-105 transition-transform flex items-center justify-center gap-2"
           >
             📊 Voir tous mes résultats
           </button>
-
+          
           <button
             onClick={onBack}
-            className="w-full py-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white font-semibold transition-all"
+            className="w-full bg-slate-800/50 text-white px-6 py-4 rounded-2xl font-bold hover:bg-slate-700/50 transition-colors"
           >
             Faire un autre questionnaire
           </button>
+        </div>
+
+        {/* Footer */}
+        <div className="text-center text-xs text-gray-600 pt-6">
+          <p>Analyse générée par ASTRA IA</p>
+          <p className="mt-1">
+            Complétée le {new Date(result.updated_at).toLocaleDateString('fr-FR', {
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric'
+            })}
+          </p>
         </div>
       </div>
     </div>
