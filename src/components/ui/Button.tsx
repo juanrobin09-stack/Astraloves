@@ -5,7 +5,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'ghost';
 }
 
-export default function Button({ children, variant = 'primary', className = '', ...props }: ButtonProps) {
+export function Button({ children, variant = 'primary', className = '', ...props }: ButtonProps) {
   const baseStyles = 'px-6 py-3 rounded-xl font-semibold transition-all duration-200';
   const variants = {
     primary: 'bg-gradient-to-r from-cosmic-purple to-pink-500 hover:scale-105 shadow-lg',

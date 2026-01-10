@@ -2,27 +2,32 @@
 // CONVERSATION TYPES
 // ═══════════════════════════════════════════════════════════════════════
 
+import type { Profile } from './user.types';
+
 export type MatchStatus = 'potential' | 'mutual' | 'rejected';
 
 export interface Match {
   id: string;
-  userId1: string;
-  userId2: string;
-  compatibilityScore: number;
-  compatibilityDetails?: any;
+  user_id_1: string;
+  user_id_2: string;
+  compatibility_score: number;
+  compatibility_details?: any;
   status: MatchStatus;
-  clickedBy1: boolean;
-  clickedBy2: boolean;
-  clickedAt1?: string;
-  clickedAt2?: string;
-  guardianActive1: boolean;
-  guardianActive2: boolean;
-  guardianReason1?: string;
-  guardianReason2?: string;
-  guardianUntil1?: string;
-  guardianUntil2?: string;
-  createdAt: string;
-  updatedAt: string;
+  clicked_by_1: boolean;
+  clicked_by_2: boolean;
+  clicked_at_1?: string;
+  clicked_at_2?: string;
+  guardian_active_1: boolean;
+  guardian_active_2: boolean;
+  guardian_reason_1?: string;
+  guardian_reason_2?: string;
+  guardian_until_1?: string;
+  guardian_until_2?: string;
+  created_at: string;
+  updated_at: string;
+  
+  // Populated field (optional join)
+  other_profile?: Profile;
 }
 
 export type ConversationStatus = 'active' | 'archived' | 'blocked';

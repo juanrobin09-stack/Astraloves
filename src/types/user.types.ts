@@ -23,47 +23,49 @@ export interface Profile {
   id: string;
   
   // Infos de base
-  firstName: string;
-  birthDate: string; // ISO date
-  birthTime: string; // HH:MM format
-  birthPlace: BirthPlace;
+  first_name: string;
+  birth_date: string; // ISO date
+  birth_time: string; // HH:MM format
+  birth_place: BirthPlace;
   gender: Gender;
-  lookingFor: Gender[];
+  looking_for: Gender[];
   bio?: string;
   
   // Localisation actuelle
-  currentCity?: string;
-  currentLat?: number;
-  currentLng?: number;
-  searchRadiusKm: number;
+  current_city?: string;
+  current_lat?: number;
+  current_lng?: number;
+  search_radius_km: number;
   
   // Photos
   photos: Photo[];
-  avatarUrl?: string;
+  avatar_url?: string;
   
   // Astro (calculé)
-  sunSign: string;
-  moonSign: string;
-  ascendantSign: string;
-  natalChartData: NatalChartData;
+  sun_sign: string;
+  moon_sign: string;
+  ascendant_sign: string;
+  natal_chart_data: NatalChartData;
   
   // Énergies
-  energyFire: number;
-  energyEarth: number;
-  energyAir: number;
-  energyWater: number;
+  energy_fire: number;
+  energy_earth: number;
+  energy_air: number;
+  energy_water: number;
   
   // Métadonnées
-  isProfileComplete: boolean;
-  onboardingCompleted: boolean;
-  lastActiveAt: string;
-  createdAt: string;
-  updatedAt: string;
+  is_profile_complete: boolean;
+  onboarding_completed: boolean;
+  onboarding_step?: number;
+  onboarding_completed_at?: string;
+  last_active_at: string;
+  created_at: string;
+  updated_at: string;
   
   // Modération
-  isVerified: boolean;
-  isBanned: boolean;
-  banReason?: string;
+  is_verified: boolean;
+  is_banned: boolean;
+  ban_reason?: string;
 }
 
 export interface Subscription {
