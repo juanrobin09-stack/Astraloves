@@ -140,9 +140,10 @@ export function ProfilePreview({ match, onClose }: ProfilePreviewProps) {
               </div>
             )}
           </div>
+        </div>
 
-          {/* Footer actions */}
-          <div className="p-6 border-t border-white/10 flex gap-3">
+        {/* Footer actions */}
+        <div className="p-6 border-t border-white/10 flex gap-3">
             <Button
               variant="secondary"
               className="flex-1"
