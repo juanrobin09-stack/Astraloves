@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import SocialButtons from './SocialButtons';
-import { supabase } from '../lib/supabase';
+import { supabase } from '@/config/supabase';
 
 interface SignupFormProps {
   onClose: () => void;
