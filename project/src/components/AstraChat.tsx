@@ -444,6 +444,8 @@ export default function AstraChat({ onNavigate }: AstraChatProps) {
   };
 
   const selectQuestionnaire = (questionnaireId: string) => {
+    console.log("[AstraChat] Questionnaire sélectionné:", questionnaireId);
+    console.log("[AstraChat] activeQuestionnaireId défini, menu fermé");
     setActiveQuestionnaireId(questionnaireId);
     setShowQuizMenu(false);
   };

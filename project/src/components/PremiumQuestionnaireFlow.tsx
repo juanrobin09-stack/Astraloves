@@ -20,23 +20,35 @@ export default function PremiumQuestionnaireFlow({ questionnaireId, onBack }: Pr
   const [analysisResult, setAnalysisResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
+  console.log('[PremiumQuestionnaire] Tentative de chargement:', questionnaireId);
+  console.log('[PremiumQuestionnaire] questionnaires disponibles:', Object.keys(questionnaires));
+
   const questionnaire = questionnaires[questionnaireId];
 
   if (!questionnaire) {
-    console.error('[PremiumQuestionnaire] Questionnaire not found:', questionnaireId);
+    console.error('[PremiumQuestionnaire] Questionnaire NOT FOUND:', questionnaireId);
+    console.log('[PremiumQuestionnaire] Type de questionnaireId:', typeof questionnaireId);
     console.log('[PremiumQuestionnaire] Available IDs:', Object.keys(questionnaires));
     return (
-      <div className="min-h-screen velvet-bg flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-white text-xl">Questionnaire introuvable</p>
-          <p className="text-white/60 text-sm mt-2">ID recherché : {questionnaireId}</p>
-          <button onClick={onBack} className="mt-4 text-red-500 hover:text-red-400">
-            Retour
+      <div className="min-h-screen bg-black flex items-center justify-center p-4">
+        <div className="text-center max-w-md">
+          <p className="text-white text-xl mb-4">❌ Questionnaire introuvable</p>
+          <p className="text-red-400 text-sm mb-2">ID recherché : {questionnaireId}</p>
+          <p className="text-gray-400 text-xs mb-4">
+            IDs disponibles : {Object.keys(questionnaires).join(', ')}
+          </p>
+          <button 
+            onClick={onBack} 
+            className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition"
+          >
+            ← Retour
           </button>
         </div>
       </div>
     );
   }
+
+  console.log('[PremiumQuestionnaire] Questionnaire trouvé:', questionnaire.title);
 
   if (analysisResult) {
     console.log('[PremiumQuestionnaire] Affichage résultats:', analysisResult);
