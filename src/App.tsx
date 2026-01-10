@@ -22,7 +22,7 @@ function AppRoutes() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center cosmic-gradient">
-        <div className="text-2xl font-display animate-pulse">⭐ ASTRA</div>
+        <div className="text-2xl font-display animate-pulse">Chargement...</div>
       </div>
     );
   }
@@ -39,16 +39,9 @@ function AppRoutes() {
     );
   }
 
-  // Connecté mais pas de profil → Problème, déconnecter
+  // Connecté mais pas de profil → Aller à l'onboarding pour créer le profil
   if (!profile) {
-    return (
-      <div className="min-h-screen flex items-center justify-center cosmic-gradient">
-        <div className="text-center">
-          <div className="text-2xl font-display mb-4">⭐ ASTRA</div>
-          <p className="text-white/60">Erreur de chargement du profil...</p>
-        </div>
-      </div>
-    );
+    return <OnboardingPage />;
   }
 
   // Onboarding pas complété
