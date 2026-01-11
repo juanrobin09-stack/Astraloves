@@ -7,6 +7,24 @@ import { useState } from 'react';
 import { matchingService } from '@/services/matching/matchingService';
 import { toast } from 'react-hot-toast';
 import { useAuthStore } from '@/store/authStore';
+import { supabase } from '@/config/supabase';
+
+// Helper pour obtenir URL avatar correcte
+const getAvatarUrl = (avatarUrl: string | null | undefined): string | null => {
+  if (!avatarUrl) return null;
+  
+  // Si déjà une URL complète, retourner telle quelle
+  if (avatarUrl.startsWith('http')) {
+    return avatarUrl;
+  }
+  
+  // Sinon, construire URL Supabase Storage
+  const { data } = supabase.storage
+    .from('avatars')
+    .getPublicUrl(avatarUrl);
+    
+  return data.publicUrl;
+};
 
 interface ProfilePreviewProps {
   match: Match;
@@ -55,15 +73,19 @@ export function ProfilePreview({ match, onClose }: ProfilePreviewProps) {
       >
         {/* Header */}
         <div className="relative h-64 overflow-hidden rounded-t-large">
-          {profile.photos?.[0]?.url ? (
+          {getAvatarUrl(profile.avatar_url) || profile.photos?.[0]?.url ? (
             <img
-              src={profile.avatar_url || profile.photos[0].url}
+              src={getAvatarUrl(profile.avatar_url) || profile.photos[0].url}
               alt={profile.first_name}
               className="w-full h-full object-cover"
+              onError={(e) => {
+                // Fallback si image ne charge pas
+                e.currentTarget.style.display = 'none';
+                e.currentTarget.nextElementSibling?.classList.remove('hidden');
+              }}
             />
-          ) : (
-            <div className="w-full h-full bg-gradient-to-br from-cosmic-purple to-cosmic-blue" />
-          )}
+          ) : null}
+          <div className={`w-full h-full bg-gradient-to-br from-cosmic-purple to-cosmic-blue ${getAvatarUrl(profile.avatar_url) || profile.photos?.[0]?.url ? 'hidden' : ''}`} />
           
           {/* Gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-cosmic-black via-transparent to-transparent" />

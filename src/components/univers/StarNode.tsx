@@ -1,6 +1,24 @@
 import { motion } from 'framer-motion';
 import type { Match } from '@/types';
 import { ZODIAC_SYMBOLS } from '@/utils/constants';
+import { supabase } from '@/config/supabase';
+
+// Helper pour obtenir URL avatar correcte
+const getAvatarUrl = (avatarUrl: string | null | undefined): string | null => {
+  if (!avatarUrl) return null;
+  
+  // Si déjà une URL complète, retourner telle quelle
+  if (avatarUrl.startsWith('http')) {
+    return avatarUrl;
+  }
+  
+  // Sinon, construire URL Supabase Storage
+  const { data } = supabase.storage
+    .from('avatars')
+    .getPublicUrl(avatarUrl);
+    
+  return data.publicUrl;
+};
 
 interface StarNodeProps {
   match: Match;
@@ -77,11 +95,15 @@ export function StarNode({
 
       {/* Star core (avatar) */}
       <div className="relative z-10 w-16 h-16 rounded-full overflow-hidden border-2 border-white/20">
-        {profile.avatar_url ? (
+        {getAvatarUrl(profile.avatar_url) ? (
           <img
-            src={profile.avatar_url}
+            src={getAvatarUrl(profile.avatar_url)!}
             alt={profile.first_name}
             className={`w-full h-full object-cover ${isBlurred ? 'blur-sm' : ''}`}
+            onError={(e) => {
+              // Fallback si image ne charge pas
+              e.currentTarget.style.display = 'none';
+            }}
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-cosmic-purple to-cosmic-blue flex items-center justify-center text-2xl">
