@@ -505,7 +505,7 @@ export async function getCurrentCycle(userId: string): Promise<CurrentCycle> {
       demands: [
         'Trier les liens réels des liens sociaux',
         'Clarifier tes priorités relationnelles',
-        'Accepter que certains choix excluent d'autres'
+        "Accepter que certains choix excluent d'autres"
       ],
       energy: 'Discriminante, parfois brutale',
       astraMessage: 'Tu sens le besoin de faire le ménage. C\'est juste. Ne culpabilise pas.'
