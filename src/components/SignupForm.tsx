@@ -74,7 +74,8 @@ export default function SignupForm({ onClose, onSwitchToLogin }: SignupFormProps
       if (signUpError) throw signUpError;
 
       if (data.user) {
-        window.location.href = '/onboarding';
+        // Redirect to home - App.tsx will redirect to onboarding if needed
+        window.location.href = '/';
       }
     } catch (err: any) {
       console.error('Signup error:', err);

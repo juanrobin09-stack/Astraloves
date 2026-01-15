@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from 'react-hot-toast';
 import { useState } from 'react';
 import { useAuth } from './hooks/useAuth';
 import MainLayout from './components/layout/MainLayout';
@@ -71,6 +72,17 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AppRoutes />
+        <Toaster
+          position="top-center"
+          toastOptions={{
+            style: {
+              background: 'rgba(15, 10, 30, 0.95)',
+              color: '#fff',
+              border: '1px solid rgba(139, 92, 246, 0.3)',
+              borderRadius: '12px',
+            },
+          }}
+        />
       </BrowserRouter>
     </QueryClientProvider>
   );

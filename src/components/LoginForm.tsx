@@ -62,7 +62,8 @@ export default function LoginForm({ onClose, onSwitchToSignup }: LoginFormProps)
       if (signInError) throw signInError;
 
       if (data.user) {
-        window.location.href = '/dashboard';
+        // Redirect to home - React Router will handle the rest
+        window.location.href = '/';
       }
     } catch (err: any) {
       console.error('Login error:', err);
