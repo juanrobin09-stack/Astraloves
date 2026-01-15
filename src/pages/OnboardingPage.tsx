@@ -66,13 +66,23 @@ export default function OnboardingPage() {
 
     setLoading(true);
     try {
+      const sunSign = getSunSign(birthDate);
+
       const profileData = {
         id: userId,
         first_name: firstName,
         birth_date: birthDate,
         birth_time: birthTime,
         birth_place: birthPlace,
-        sun_sign: getSunSign(birthDate),
+        // Signes astrologiques (moon et ascendant seront calculés plus tard)
+        sun_sign: sunSign,
+        moon_sign: sunSign, // Placeholder - sera recalculé avec l'heure exacte
+        ascendant_sign: sunSign, // Placeholder - sera recalculé avec l'heure exacte
+        // Énergies par défaut (équilibrées)
+        energy_fire: 25,
+        energy_earth: 25,
+        energy_air: 25,
+        energy_water: 25,
         gender,
         looking_for: lookingFor,
         bio: bio || null,
