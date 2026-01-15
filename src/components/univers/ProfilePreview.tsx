@@ -1,6 +1,5 @@
 import { motion } from 'framer-motion';
 import { X, Heart, Shield, Sparkles } from 'lucide-react';
-import type { Match } from '@/types';
 import { ZODIAC_SYMBOLS } from '@/utils/constants';
 import { Button } from '@/components/ui/Button';
 import { useState } from 'react';
@@ -12,47 +11,68 @@ import { supabase } from '@/config/supabase';
 // Helper pour obtenir URL avatar correcte
 const getAvatarUrl = (avatarUrl: string | null | undefined): string | null => {
   if (!avatarUrl) return null;
-  
+
   // Si déjà une URL complète, retourner telle quelle
   if (avatarUrl.startsWith('http')) {
     return avatarUrl;
   }
-  
+
   // Sinon, construire URL Supabase Storage
   const { data } = supabase.storage
     .from('avatars')
     .getPublicUrl(avatarUrl);
-    
+
   return data.publicUrl;
 };
 
 interface ProfilePreviewProps {
-  match: Match;
+  match: any; // Profile with compatibility field
   onClose: () => void;
 }
 
 export function ProfilePreview({ match, onClose }: ProfilePreviewProps) {
   const { profile: currentUser } = useAuthStore();
   const [isLiking, setIsLiking] = useState(false);
-  const profile = match.other_profile;
+
+  // match IS the profile (from getPotentialMatches)
+  const profile = match;
 
   if (!profile) return null;
 
   const handleLike = async () => {
-    if (!currentUser?.id) return;
-    
+    if (!currentUser?.id || !profile?.id) return;
+
+    setIsLiking(true);
     try {
-      const updated = await matchingService.clickMatch(currentUser.id, profile.id);
-      
-      if (updated.status === 'mutual') {
-        toast.success('Match ! 🌟 Conversation ouverte');
+      // Create or get the match record
+      const matchRecord = await matchingService.createMatch(currentUser.id, profile.id);
+
+      if (matchRecord) {
+        // Record the click (like)
+        await matchingService.recordClick(matchRecord.id, currentUser.id);
+
+        // Check if it's mutual
+        const { data: updatedMatch } = await supabase
+          .from('matches')
+          .select('*')
+          .eq('id', matchRecord.id)
+          .single();
+
+        if (updatedMatch?.status === 'mutual') {
+          toast.success('Match mutuel ! 🌟 Conversation ouverte');
+        } else {
+          toast.success('Signal cosmique envoyé ✨');
+        }
       } else {
         toast.success('Signal cosmique envoyé ✨');
       }
-      
+
       onClose();
     } catch (error) {
+      console.error('Like error:', error);
       toast.error('Erreur lors du match');
+    } finally {
+      setIsLiking(false);
     }
   };
 
@@ -122,66 +142,57 @@ export function ProfilePreview({ match, onClose }: ProfilePreviewProps) {
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm text-white/60">Compatibilité</span>
                 <span className="text-2xl font-bold text-cosmic-gold">
-                  {match.compatibility_score}%
+                  {profile.compatibility || 75}%
                 </span>
               </div>
-              
+
               <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden">
                 <motion.div
                   className="h-full bg-gradient-to-r from-cosmic-purple to-cosmic-gold"
                   initial={{ width: 0 }}
-                  animate={{ width: `${match.compatibility_score}%` }}
+                  animate={{ width: `${profile.compatibility || 75}%` }}
                   transition={{ duration: 1, delay: 0.2 }}
                 />
               </div>
             </div>
 
-            {/* Synastrie summary */}
-            {match.compatibility_details && (
-              <div className="space-y-3">
-                <div>
-                  <h4 className="text-sm font-semibold mb-2">🌟 Points forts</h4>
-                  <ul className="space-y-1">
-                    {match.compatibility_details.main_strengths.map((strength, i) => (
-                      <li key={i} className="text-sm text-white/80 flex gap-2">
-                        <span className="text-cosmic-green">✓</span>
-                        {strength}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div>
-                  <h4 className="text-sm font-semibold mb-2 text-cosmic-red">⚠️ Défis</h4>
-                  <ul className="space-y-1">
-                    {match.compatibility_details.main_challenges.map((challenge, i) => (
-                      <li key={i} className="text-sm text-white/80">• {challenge}</li>
-                    ))}
-                  </ul>
-                </div>
+            {/* Synastrie summary - simplified version */}
+            <div className="space-y-3">
+              <div>
+                <h4 className="text-sm font-semibold mb-2">🌟 Compatibilité astrale</h4>
+                <p className="text-sm text-white/80">
+                  {(profile.compatibility || 75) >= 80 ? (
+                    "Connexion cosmique exceptionnelle. Vos énergies sont en harmonie."
+                  ) : (profile.compatibility || 75) >= 60 ? (
+                    "Bonne compatibilité. Potentiel de croissance mutuelle."
+                  ) : (
+                    "Différences stimulantes. Opportunité d'apprentissage."
+                  )}
+                </p>
               </div>
-            )}
+            </div>
           </div>
         </div>
 
         {/* Footer actions */}
         <div className="p-6 border-t border-white/10 flex gap-3">
-            <Button
-              variant="secondary"
-              className="flex-1"
-              onClick={onClose}
-            >
-              Fermer
-            </Button>
-            <Button
-              variant="primary"
-              className="flex-1"
-              onClick={handleLike}
-            >
-              ⭐ Envoyer un signal cosmique
-            </Button>
-          </div>
-        </motion.div>
+          <Button
+            variant="secondary"
+            className="flex-1"
+            onClick={onClose}
+          >
+            Fermer
+          </Button>
+          <Button
+            variant="primary"
+            className="flex-1"
+            onClick={handleLike}
+            disabled={isLiking}
+          >
+            {isLiking ? '...' : '⭐ Envoyer un signal cosmique'}
+          </Button>
+        </div>
       </motion.div>
-    );
-  }
+    </motion.div>
+  );
+}

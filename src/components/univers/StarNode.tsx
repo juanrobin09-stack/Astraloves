@@ -1,27 +1,26 @@
 import { motion } from 'framer-motion';
-import type { Match } from '@/types';
 import { ZODIAC_SYMBOLS } from '@/utils/constants';
 import { supabase } from '@/config/supabase';
 
 // Helper pour obtenir URL avatar correcte
 const getAvatarUrl = (avatarUrl: string | null | undefined): string | null => {
   if (!avatarUrl) return null;
-  
+
   // Si déjà une URL complète, retourner telle quelle
   if (avatarUrl.startsWith('http')) {
     return avatarUrl;
   }
-  
+
   // Sinon, construire URL Supabase Storage
   const { data } = supabase.storage
     .from('avatars')
     .getPublicUrl(avatarUrl);
-    
+
   return data.publicUrl;
 };
 
 interface StarNodeProps {
-  match: Match;
+  match: any; // Profile with compatibility field from matchingService
   position: { x: number; y: number };
   isBlurred: boolean;
   isHovered: boolean;
@@ -39,10 +38,11 @@ export function StarNode({
   onMouseEnter,
   onMouseLeave,
 }: StarNodeProps) {
-  const profile = match.other_profile;
+  // match IS the profile (from getPotentialMatches)
+  const profile = match;
   if (!profile) return null;
 
-  const compatibility = match.compatibility_score;
+  const compatibility = profile.compatibility || 75;
   
   // Aura color based on compatibility
   const getAuraColor = () => {
@@ -125,10 +125,10 @@ export function StarNode({
         </motion.div>
       )}
 
-      {/* Guardian badge */}
-      {match.guardian_active_1 || match.guardian_active_2 && (
+      {/* Guardian badge - shown for verified profiles */}
+      {profile.is_verified && (
         <div className="absolute -top-1 -right-1 w-5 h-5 bg-cosmic-gold rounded-full flex items-center justify-center text-xs">
-          🛡️
+          ✓
         </div>
       )}
 
