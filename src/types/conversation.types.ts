@@ -74,3 +74,46 @@ export interface ProfileView {
   viewedId: string;
   viewedAt: string;
 }
+
+// ═══════════════════════════════════════════════════════════════════════
+// FRIEND TYPES
+// ═══════════════════════════════════════════════════════════════════════
+
+export type FriendStatus = 'pending' | 'accepted' | 'rejected' | 'blocked';
+
+export interface Friend {
+  id: string;
+  user_id: string;
+  friend_id: string;
+  status: FriendStatus;
+  requested_at: string;
+  accepted_at?: string;
+  created_at: string;
+  updated_at: string;
+
+  // Populated field (from join)
+  friend_profile?: {
+    id: string;
+    first_name: string;
+    avatar_url: string | null;
+    sun_sign: string;
+    moon_sign: string;
+  };
+}
+
+export interface FriendRequest {
+  id: string;
+  user_id: string;
+  friend_id: string;
+  status: FriendStatus;
+  requested_at: string;
+
+  // Populated field (from join) - the person who sent the request
+  requester_profile?: {
+    id: string;
+    first_name: string;
+    avatar_url: string | null;
+    sun_sign: string;
+    moon_sign: string;
+  };
+}

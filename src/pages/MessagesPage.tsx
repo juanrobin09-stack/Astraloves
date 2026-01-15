@@ -3,9 +3,12 @@ import { useAuthStore } from '@/store/authStore';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { conversationService } from '@/services/messaging/conversationService';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageCircle, Send, ArrowLeft, Sparkles, User } from 'lucide-react';
+import { MessageCircle, Send, ArrowLeft, Sparkles, User, Users, UserPlus } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { FriendsList } from '@/components/friends/FriendsList';
+import { FriendRequests } from '@/components/friends/FriendRequests';
+import { AddFriendModal } from '@/components/friends/AddFriendModal';
 
 interface ConversationData {
   id: string;
@@ -36,6 +39,8 @@ interface MessageData {
   created_at: string;
 }
 
+type TabType = 'conversations' | 'friends';
+
 const SIGN_SYMBOLS: Record<string, string> = {
   aries: '♈', taurus: '♉', gemini: '♊', cancer: '♋',
   leo: '♌', virgo: '♍', libra: '♎', scorpio: '♏',
@@ -52,8 +57,10 @@ function getSignSymbol(sign: string): string {
 export default function MessagesPage() {
   const { profile } = useAuthStore();
   const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState<TabType>('conversations');
   const [selectedConversation, setSelectedConversation] = useState<ConversationData | null>(null);
   const [messageInput, setMessageInput] = useState('');
+  const [showAddFriendModal, setShowAddFriendModal] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Fetch conversations
@@ -123,6 +130,12 @@ export default function MessagesPage() {
     return conv.user_id_1 === profile.id ? conv.unread_count_1 : conv.unread_count_2;
   };
 
+  const handleStartChatWithFriend = (friendId: string) => {
+    // For now, just switch to conversations tab
+    // In the future, this could create a new conversation or find an existing one
+    setActiveTab('conversations');
+  };
+
   if (!profile) {
     return (
       <div className="h-full flex items-center justify-center">
@@ -135,7 +148,7 @@ export default function MessagesPage() {
   // Desktop: Show both side by side
   return (
     <div className="h-full flex bg-cosmic-black">
-      {/* Conversations List */}
+      {/* Sidebar: Tabs + List */}
       <AnimatePresence mode="wait">
         {(!selectedConversation || window.innerWidth >= 768) && (
           <motion.div
@@ -144,85 +157,137 @@ export default function MessagesPage() {
             exit={{ x: -20, opacity: 0 }}
             className={`${selectedConversation ? 'hidden md:flex' : 'flex'} flex-col w-full md:w-80 lg:w-96 border-r border-white/10`}
           >
-            {/* Header */}
+            {/* Header with tabs */}
             <div className="p-4 border-b border-white/10">
-              <h1 className="text-2xl font-display font-bold flex items-center gap-2">
+              <h1 className="text-2xl font-display font-bold flex items-center gap-2 mb-4">
                 <MessageCircle className="w-6 h-6 text-cosmic-purple" />
                 Messages
               </h1>
+
+              {/* Tabs */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setActiveTab('conversations')}
+                  className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+                    activeTab === 'conversations'
+                      ? 'bg-cosmic-purple text-white'
+                      : 'bg-white/5 text-white/60 hover:bg-white/10'
+                  }`}
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  Conversations
+                </button>
+                <button
+                  onClick={() => setActiveTab('friends')}
+                  className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+                    activeTab === 'friends'
+                      ? 'bg-cosmic-purple text-white'
+                      : 'bg-white/5 text-white/60 hover:bg-white/10'
+                  }`}
+                >
+                  <Users className="w-4 h-4" />
+                  Mes Amis
+                </button>
+              </div>
             </div>
 
-            {/* Conversations */}
-            <div className="flex-1 overflow-y-auto">
-              {loadingConversations ? (
-                <div className="flex items-center justify-center p-8">
-                  <div className="animate-cosmic-pulse text-2xl">✨</div>
+            {/* Friends Tab: Add Friend button + Requests + List */}
+            {activeTab === 'friends' && (
+              <>
+                {/* Add Friend Button */}
+                <div className="p-4 border-b border-white/10">
+                  <button
+                    onClick={() => setShowAddFriendModal(true)}
+                    className="w-full py-3 px-4 bg-gradient-to-r from-cosmic-purple to-pink-500 hover:from-cosmic-purple/80 hover:to-pink-500/80 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                  >
+                    <UserPlus className="w-5 h-5" />
+                    Ajouter un ami
+                  </button>
                 </div>
-              ) : conversations && conversations.length > 0 ? (
-                conversations.map((conv: ConversationData) => {
-                  const otherUser = getOtherUser(conv);
-                  const unreadCount = getUnreadCount(conv);
 
-                  return (
-                    <motion.button
-                      key={conv.id}
-                      onClick={() => setSelectedConversation(conv)}
-                      className={`w-full p-4 flex items-center gap-3 hover:bg-white/5 transition-colors border-b border-white/5 text-left ${
-                        selectedConversation?.id === conv.id ? 'bg-white/10' : ''
-                      }`}
-                      whileHover={{ scale: 1.01 }}
-                      whileTap={{ scale: 0.99 }}
-                    >
-                      {/* Avatar */}
-                      <div className="relative">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cosmic-purple to-pink-500 flex items-center justify-center overflow-hidden">
-                          {otherUser?.avatar_url ? (
-                            <img src={otherUser.avatar_url} alt="" className="w-full h-full object-cover" />
-                          ) : (
-                            <User className="w-6 h-6 text-white" />
+                {/* Friend Requests */}
+                <FriendRequests />
+
+                {/* Friends List */}
+                <div className="flex-1 overflow-y-auto">
+                  <FriendsList onStartChat={handleStartChatWithFriend} />
+                </div>
+              </>
+            )}
+
+            {/* Conversations Tab */}
+            {activeTab === 'conversations' && (
+              <div className="flex-1 overflow-y-auto">
+                {loadingConversations ? (
+                  <div className="flex items-center justify-center p-8">
+                    <div className="animate-cosmic-pulse text-2xl">✨</div>
+                  </div>
+                ) : conversations && conversations.length > 0 ? (
+                  conversations.map((conv: ConversationData) => {
+                    const otherUser = getOtherUser(conv);
+                    const unreadCount = getUnreadCount(conv);
+
+                    return (
+                      <motion.button
+                        key={conv.id}
+                        onClick={() => setSelectedConversation(conv)}
+                        className={`w-full p-4 flex items-center gap-3 hover:bg-white/5 transition-colors border-b border-white/5 text-left ${
+                          selectedConversation?.id === conv.id ? 'bg-white/10' : ''
+                        }`}
+                        whileHover={{ scale: 1.01 }}
+                        whileTap={{ scale: 0.99 }}
+                      >
+                        {/* Avatar */}
+                        <div className="relative">
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cosmic-purple to-pink-500 flex items-center justify-center overflow-hidden">
+                            {otherUser?.avatar_url ? (
+                              <img src={otherUser.avatar_url} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              <User className="w-6 h-6 text-white" />
+                            )}
+                          </div>
+                          {unreadCount > 0 && (
+                            <span className="absolute -top-1 -right-1 w-5 h-5 bg-cosmic-gold text-cosmic-black text-xs font-bold rounded-full flex items-center justify-center">
+                              {unreadCount}
+                            </span>
                           )}
                         </div>
-                        {unreadCount > 0 && (
-                          <span className="absolute -top-1 -right-1 w-5 h-5 bg-cosmic-gold text-cosmic-black text-xs font-bold rounded-full flex items-center justify-center">
-                            {unreadCount}
+
+                        {/* Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold truncate">
+                              {otherUser?.first_name || 'Utilisateur'}
+                            </span>
+                            <span className="text-sm opacity-60">
+                              {getSignSymbol(otherUser?.sun_sign || '')}
+                            </span>
+                          </div>
+                          <p className="text-sm text-white/60 truncate">
+                            {conv.last_message_preview || 'Commencez la conversation...'}
+                          </p>
+                        </div>
+
+                        {/* Time */}
+                        {conv.last_message_at && (
+                          <span className="text-xs text-white/40">
+                            {format(new Date(conv.last_message_at), 'HH:mm', { locale: fr })}
                           </span>
                         )}
-                      </div>
-
-                      {/* Info */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold truncate">
-                            {otherUser?.first_name || 'Utilisateur'}
-                          </span>
-                          <span className="text-sm opacity-60">
-                            {getSignSymbol(otherUser?.sun_sign || '')}
-                          </span>
-                        </div>
-                        <p className="text-sm text-white/60 truncate">
-                          {conv.last_message_preview || 'Commencez la conversation...'}
-                        </p>
-                      </div>
-
-                      {/* Time */}
-                      {conv.last_message_at && (
-                        <span className="text-xs text-white/40">
-                          {format(new Date(conv.last_message_at), 'HH:mm', { locale: fr })}
-                        </span>
-                      )}
-                    </motion.button>
-                  );
-                })
-              ) : (
-                <div className="flex flex-col items-center justify-center p-8 text-center">
-                  <Sparkles className="w-12 h-12 text-cosmic-purple mb-4 opacity-50" />
-                  <h3 className="text-lg font-semibold mb-2">Aucune conversation</h3>
-                  <p className="text-white/60 text-sm">
-                    Explorez l'Univers pour découvrir des profils et créer des connexions cosmiques !
-                  </p>
-                </div>
-              )}
-            </div>
+                      </motion.button>
+                    );
+                  })
+                ) : (
+                  <div className="flex flex-col items-center justify-center p-8 text-center">
+                    <Sparkles className="w-12 h-12 text-cosmic-purple mb-4 opacity-50" />
+                    <h3 className="text-lg font-semibold mb-2">Aucune conversation</h3>
+                    <p className="text-white/60 text-sm">
+                      Explorez l'Univers pour découvrir des profils et créer des connexions cosmiques !
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -342,6 +407,13 @@ export default function MessagesPage() {
               </p>
             </div>
           </div>
+        )}
+      </AnimatePresence>
+
+      {/* Add Friend Modal */}
+      <AnimatePresence>
+        {showAddFriendModal && (
+          <AddFriendModal onClose={() => setShowAddFriendModal(false)} />
         )}
       </AnimatePresence>
     </div>
