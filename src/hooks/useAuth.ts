@@ -20,14 +20,17 @@ export const useAuth = () => {
             authService.getProfile(currentUser.id),
             authService.getSubscription(currentUser.id),
           ]);
-          setProfile(profileData);
+
+          // If profile doesn't exist, create a minimal one
+          if (!profileData) {
+            setProfile({ id: currentUser.id, first_name: 'User' } as any);
+          } else {
+            setProfile(profileData);
+          }
           setSubscription(subscriptionData);
         }
       } catch (error: any) {
-        // Ne log que si ce n'est pas juste une absence de session
-        if (!error?.message?.includes('session')) {
-          console.error('Auth load error:', error);
-        }
+        console.warn('Auth load:', error?.message || 'No session');
       } finally {
         setIsLoading(false);
       }
@@ -35,18 +38,25 @@ export const useAuth = () => {
 
     loadAuth();
 
-    const { data: { subscription } } = authService.onAuthStateChange((user) => {
-      setUser(user);
-      if (user) {
-        authService.getProfile(user.id).then(setProfile);
-        authService.getSubscription(user.id).then(setSubscription);
+    // Fix: renamed variable to avoid conflict with state
+    const { data: { subscription: authSubscription } } = authService.onAuthStateChange((authUser) => {
+      setUser(authUser);
+      if (authUser) {
+        authService.getProfile(authUser.id).then((p) => {
+          if (!p) {
+            setProfile({ id: authUser.id, first_name: 'User' } as any);
+          } else {
+            setProfile(p);
+          }
+        });
+        authService.getSubscription(authUser.id).then(setSubscription);
       } else {
         setProfile(null);
         setSubscription(null);
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => authSubscription.unsubscribe();
   }, []);
 
   return { user, profile, subscription, isLoading };

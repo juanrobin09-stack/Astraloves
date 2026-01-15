@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { Star } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { supabase } from '@/config/supabase';
+import toast from 'react-hot-toast';
 
 export default function OnboardingPage() {
-  const { profile } = useAuthStore();
+  const { user, profile, setProfile } = useAuthStore();
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -24,7 +25,7 @@ export default function OnboardingPage() {
 
   const handleStep1 = () => {
     if (!firstName || !birthDate) {
-      alert('Veuillez remplir tous les champs');
+      toast.error('Veuillez remplir tous les champs');
       return;
     }
     setStep(2);
@@ -35,30 +36,46 @@ export default function OnboardingPage() {
   };
 
   const handleComplete = async () => {
-    if (!profile?.id) return;
-    
+    // Use user.id from auth as the primary identifier
+    const userId = user?.id || profile?.id;
+    if (!userId) {
+      toast.error('Session expirée. Veuillez vous reconnecter.');
+      return;
+    }
+
     setLoading(true);
     try {
-      const { error } = await supabase
+      const profileData = {
+        id: userId,
+        first_name: firstName,
+        birth_date: birthDate,
+        birth_time: birthTime,
+        gender,
+        looking_for: lookingFor,
+        bio: bio || null,
+        onboarding_completed: true,
+        onboarding_step: 3,
+      };
+
+      // Use upsert to create or update the profile
+      const { data, error } = await supabase
         .from('profiles')
-        .update({
-          first_name: firstName,
-          birth_date: birthDate,
-          birth_time: birthTime,
-          gender,
-          looking_for: lookingFor,
-          bio: bio || null,
-          onboarding_completed: true,
-          onboarding_step: 3,
-        })
-        .eq('id', profile.id);
+        .upsert(profileData, { onConflict: 'id' })
+        .select()
+        .single();
 
       if (error) throw error;
 
+      // Update local state with the new profile
+      if (data) {
+        setProfile(data);
+      }
+
+      toast.success('Profil créé avec succès !');
       navigate('/univers', { replace: true });
-    } catch (error) {
-      console.error('Error:', error);
-      alert('Erreur lors de la sauvegarde');
+    } catch (error: any) {
+      console.error('Onboarding error:', error);
+      toast.error(error?.message || 'Erreur lors de la sauvegarde');
     } finally {
       setLoading(false);
     }
