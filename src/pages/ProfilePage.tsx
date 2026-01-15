@@ -132,12 +132,26 @@ export default function ProfilePage() {
           {/* Top Bar */}
           <div className="flex justify-between items-center mb-8">
             <h1 className="text-2xl font-display font-bold">Mon Profil</h1>
-            <button
-              onClick={() => setActiveSection(activeSection === 'settings' ? 'profile' : 'settings')}
-              className="w-10 h-10 bg-white/10 backdrop-blur-xl rounded-xl flex items-center justify-center hover:bg-white/20 transition-colors"
-            >
-              <Settings className="w-5 h-5" />
-            </button>
+            <div className="flex items-center gap-2">
+              {/* Subscription Button */}
+              <button
+                onClick={() => navigate('/subscription')}
+                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
+                  isPremium
+                    ? isElite ? 'bg-cosmic-gold/20 hover:bg-cosmic-gold/30' : 'bg-cosmic-red/20 hover:bg-cosmic-red/30'
+                    : 'bg-cosmic-gold/20 hover:bg-cosmic-gold/30 animate-pulse'
+                }`}
+              >
+                <Crown className={`w-5 h-5 ${isElite ? 'text-cosmic-gold' : isPremium ? 'text-cosmic-red' : 'text-cosmic-gold'}`} />
+              </button>
+              {/* Settings Button */}
+              <button
+                onClick={() => setActiveSection(activeSection === 'settings' ? 'profile' : 'settings')}
+                className="w-10 h-10 bg-white/10 backdrop-blur-xl rounded-xl flex items-center justify-center hover:bg-white/20 transition-colors"
+              >
+                <Settings className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
           {/* Profile Card */}
@@ -372,8 +386,9 @@ export default function ProfilePage() {
               {/* Subscription CTA */}
               {!isPremium && (
                 <motion.div
-                  className="bg-gradient-to-r from-cosmic-red/20 to-pink-500/20 border border-cosmic-red/30 rounded-2xl p-5"
+                  className="bg-gradient-to-r from-cosmic-red/20 to-pink-500/20 border border-cosmic-red/30 rounded-2xl p-5 cursor-pointer"
                   whileHover={{ scale: 1.02 }}
+                  onClick={() => navigate('/subscription')}
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-14 h-14 bg-cosmic-red rounded-2xl flex items-center justify-center">
