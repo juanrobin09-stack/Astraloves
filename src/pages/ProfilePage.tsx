@@ -6,9 +6,10 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/config/supabase';
 import { toast } from 'react-hot-toast';
 import {
-  User, Settings, Crown, Edit3, Camera, MapPin, Calendar,
+  User, Settings, Crown, Edit3, Camera, MapPin,
   Sun, Moon, Sunrise, Sparkles, Heart, Shield, LogOut,
-  ChevronRight, Star, Check, X, Plus, Image as ImageIcon
+  ChevronRight, Star, Check, Plus, Image as ImageIcon,
+  Zap, Eye, Bell, HelpCircle
 } from 'lucide-react';
 
 const ZODIAC_SYMBOLS: Record<string, string> = {
@@ -16,6 +17,14 @@ const ZODIAC_SYMBOLS: Record<string, string> = {
   leo: '♌', virgo: '♍', libra: '♎', scorpio: '♏',
   sagittarius: '♐', capricorn: '♑', aquarius: '♒', pisces: '♓',
 };
+
+const ZODIAC_NAMES_FR: Record<string, string> = {
+  aries: 'Bélier', taurus: 'Taureau', gemini: 'Gémeaux', cancer: 'Cancer',
+  leo: 'Lion', virgo: 'Vierge', libra: 'Balance', scorpio: 'Scorpion',
+  sagittarius: 'Sagittaire', capricorn: 'Capricorne', aquarius: 'Verseau', pisces: 'Poissons',
+};
+
+const getZodiacFr = (sign: string) => ZODIAC_NAMES_FR[sign?.toLowerCase()] || sign;
 
 export default function ProfilePage() {
   const { profile, signOut, fetchProfile } = useAuthStore();
@@ -25,17 +34,17 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [editedBio, setEditedBio] = useState(profile?.bio || '');
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
-  const [activeSection, setActiveSection] = useState<'profile' | 'settings'>('profile');
 
   if (!profile) {
     return (
-      <div className="h-full flex items-center justify-center">
-        <div className="animate-cosmic-pulse text-4xl">✨</div>
+      <div className="h-full flex items-center justify-center bg-black">
+        <div className="animate-pulse text-3xl">✨</div>
       </div>
     );
   }
 
   const zodiacSymbol = ZODIAC_SYMBOLS[profile.sun_sign?.toLowerCase()] || '✨';
+  const profileCompletion = calculateCompletion(profile);
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -96,406 +105,318 @@ export default function ProfilePage() {
     navigate('/');
   };
 
-  const profileCompletion = calculateCompletion(profile);
-
   return (
-    <div className="h-full overflow-y-auto bg-gradient-to-b from-black via-[#0a0000] to-black">
-      {/* Hero Header */}
-      <div className="relative">
-        {/* Background Gradient */}
-        <div className="absolute inset-0 bg-gradient-to-b from-cosmic-red/20 via-cosmic-red/5 to-transparent" />
-
-        {/* Animated Particles */}
-        <div className="absolute inset-0 overflow-hidden">
-          {[...Array(20)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute w-1 h-1 bg-cosmic-red/50 rounded-full"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-              }}
-              animate={{
-                y: [-20, 20],
-                opacity: [0.2, 0.8, 0.2],
-              }}
-              transition={{
-                duration: 3 + Math.random() * 2,
-                repeat: Infinity,
-                delay: Math.random() * 2,
-              }}
-            />
-          ))}
-        </div>
-
-        <div className="relative z-10 px-6 pt-8 pb-6">
-          {/* Top Bar */}
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-2xl font-display font-bold">Mon Profil</h1>
-            <div className="flex items-center gap-2">
-              {/* Subscription Button */}
-              <button
-                onClick={() => navigate('/subscription')}
-                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
-                  isPremium
-                    ? isElite ? 'bg-cosmic-gold/20 hover:bg-cosmic-gold/30' : 'bg-cosmic-red/20 hover:bg-cosmic-red/30'
-                    : 'bg-cosmic-gold/20 hover:bg-cosmic-gold/30 animate-pulse'
-                }`}
-              >
-                <Crown className={`w-5 h-5 ${isElite ? 'text-cosmic-gold' : isPremium ? 'text-cosmic-red' : 'text-cosmic-gold'}`} />
-              </button>
-              {/* Settings Button */}
-              <button
-                onClick={() => setActiveSection(activeSection === 'settings' ? 'profile' : 'settings')}
-                className="w-10 h-10 bg-white/10 backdrop-blur-xl rounded-xl flex items-center justify-center hover:bg-white/20 transition-colors"
-              >
-                <Settings className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-
-          {/* Profile Card */}
-          <div className="relative">
-            {/* Avatar Section */}
-            <div className="flex flex-col items-center">
-              {/* Avatar with Tier Ring */}
-              <div className="relative mb-4">
-                <motion.div
-                  className={`w-32 h-32 rounded-full p-1 ${
-                    isElite ? 'bg-gradient-to-r from-cosmic-gold via-yellow-400 to-cosmic-gold' :
-                    isPremium ? 'bg-gradient-to-r from-cosmic-red via-pink-500 to-cosmic-red' :
-                    'bg-white/20'
-                  }`}
-                  animate={isPremium ? { rotate: 360 } : {}}
-                  transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-                >
-                  <div className="w-full h-full rounded-full bg-cosmic-black p-1">
-                    <div className="w-full h-full rounded-full overflow-hidden bg-cosmic-surface flex items-center justify-center">
-                      {profile.avatar_url ? (
-                        <img
-                          src={profile.avatar_url}
-                          alt={profile.first_name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <User className="w-12 h-12 text-white/40" />
-                      )}
-                    </div>
-                  </div>
-                </motion.div>
-
-                {/* Edit Photo Button */}
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="absolute bottom-0 right-0 w-10 h-10 bg-cosmic-red rounded-full flex items-center justify-center shadow-lg hover:bg-cosmic-red-light transition-colors"
-                  disabled={uploadingPhoto}
-                >
-                  {uploadingPhoto ? (
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  ) : (
-                    <Camera className="w-5 h-5 text-white" />
-                  )}
-                </button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handlePhotoUpload}
-                  className="hidden"
-                />
-
-                {/* Tier Badge */}
-                {isPremium && (
-                  <div className={`absolute -top-2 -right-2 w-8 h-8 rounded-full flex items-center justify-center ${
-                    isElite ? 'bg-cosmic-gold' : 'bg-cosmic-red'
-                  }`}>
-                    <Crown className={`w-4 h-4 ${isElite ? 'text-black' : 'text-white'}`} />
-                  </div>
-                )}
-              </div>
-
-              {/* Name & Sign */}
-              <h2 className="text-2xl font-display font-bold mb-1">
-                {profile.first_name}
-              </h2>
-              <p className="text-white/60 flex items-center gap-2 mb-4">
-                <span className="text-xl">{zodiacSymbol}</span>
-                <span>{profile.sun_sign}</span>
-                {isPremium && (
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                    isElite ? 'bg-cosmic-gold/20 text-cosmic-gold' : 'bg-cosmic-red/20 text-cosmic-red'
-                  }`}>
-                    {isElite ? 'ELITE' : 'PREMIUM'}
-                  </span>
-                )}
-              </p>
-
-              {/* Quick Stats */}
-              <div className="flex gap-6 mb-6">
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-cosmic-red">0</p>
-                  <p className="text-xs text-white/50">Matchs</p>
-                </div>
-                <div className="w-px bg-white/10" />
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-cosmic-red">0</p>
-                  <p className="text-xs text-white/50">Likes</p>
-                </div>
-                <div className="w-px bg-white/10" />
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-cosmic-red">{profileCompletion}%</p>
-                  <p className="text-xs text-white/50">Complet</p>
-                </div>
-              </div>
-
-              {/* Completion Bar */}
-              {profileCompletion < 100 && (
-                <div className="w-full max-w-xs">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-xs text-white/50">Profil incomplet</span>
-                    <span className="text-xs text-cosmic-red font-medium">{profileCompletion}%</span>
-                  </div>
-                  <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${profileCompletion}%` }}
-                      className="h-full bg-gradient-to-r from-cosmic-red to-cosmic-red-light rounded-full"
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+    <div className="h-full overflow-y-auto bg-black">
+      {/* Compact Header */}
+      <div className="sticky top-0 z-20 bg-black/80 backdrop-blur-xl border-b border-white/5">
+        <div className="flex items-center justify-between px-4 py-3">
+          <h1 className="text-lg font-semibold">Profil</h1>
+          <button
+            onClick={() => navigate('/subscription')}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 ${
+              isElite
+                ? 'bg-gradient-to-r from-amber-500/20 to-yellow-500/20 text-amber-400 border border-amber-500/30'
+                : isPremium
+                  ? 'bg-cosmic-red/20 text-cosmic-red border border-cosmic-red/30'
+                  : 'bg-white/10 text-white/70 border border-white/10'
+            }`}
+          >
+            <Crown className="w-3 h-3" />
+            {isElite ? 'Elite' : isPremium ? 'Premium' : 'Gratuit'}
+          </button>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="px-6 pb-24">
-        <AnimatePresence mode="wait">
-          {activeSection === 'profile' ? (
-            <motion.div
-              key="profile"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="space-y-4"
-            >
-              {/* Bio Section */}
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-5">
-                <div className="flex justify-between items-center mb-3">
-                  <h3 className="font-bold flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-cosmic-red" />
-                    Bio
-                  </h3>
-                  <button
-                    onClick={() => isEditing ? handleSaveBio() : setIsEditing(true)}
-                    className="text-cosmic-red text-sm font-medium flex items-center gap-1"
-                  >
-                    {isEditing ? <Check className="w-4 h-4" /> : <Edit3 className="w-4 h-4" />}
-                    {isEditing ? 'Sauvegarder' : 'Modifier'}
-                  </button>
-                </div>
-                {isEditing ? (
-                  <div className="space-y-3">
-                    <textarea
-                      value={editedBio}
-                      onChange={(e) => setEditedBio(e.target.value)}
-                      placeholder="Décris-toi en quelques mots..."
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl resize-none focus:border-cosmic-red focus:outline-none transition-colors"
-                      rows={4}
-                      maxLength={500}
-                    />
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs text-white/40">{editedBio.length}/500</span>
-                      <button
-                        onClick={() => { setIsEditing(false); setEditedBio(profile.bio || ''); }}
-                        className="text-white/50 text-sm"
-                      >
-                        Annuler
-                      </button>
-                    </div>
+      <div className="px-4 py-4 space-y-4">
+        {/* Profile Card - Compact */}
+        <div className="bg-[#1c1c1e] rounded-2xl p-4">
+          <div className="flex items-center gap-4">
+            {/* Avatar */}
+            <div className="relative flex-shrink-0">
+              <div className={`w-20 h-20 rounded-full p-0.5 ${
+                isElite ? 'bg-gradient-to-br from-amber-400 to-yellow-500' :
+                isPremium ? 'bg-gradient-to-br from-cosmic-red to-pink-500' :
+                'bg-white/20'
+              }`}>
+                <div className="w-full h-full rounded-full bg-[#1c1c1e] p-0.5">
+                  <div className="w-full h-full rounded-full overflow-hidden bg-[#2c2c2e] flex items-center justify-center">
+                    {profile.avatar_url ? (
+                      <img
+                        src={profile.avatar_url}
+                        alt={profile.first_name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <User className="w-8 h-8 text-white/30" />
+                    )}
                   </div>
-                ) : (
-                  <p className="text-white/70 leading-relaxed">
-                    {profile.bio || 'Ajoute une bio pour te présenter...'}
-                  </p>
-                )}
-              </div>
-
-              {/* Astrology Section */}
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-5">
-                <h3 className="font-bold flex items-center gap-2 mb-4">
-                  <Star className="w-4 h-4 text-cosmic-red" />
-                  Profil Astral
-                </h3>
-                <div className="grid grid-cols-3 gap-3">
-                  {[
-                    { label: 'Soleil', value: profile.sun_sign, icon: Sun, color: '#FFD700' },
-                    { label: 'Lune', value: profile.moon_sign, icon: Moon, color: '#C4B5FD' },
-                    { label: 'Ascendant', value: profile.ascendant_sign, icon: Sunrise, color: '#F97316' },
-                  ].map((item) => (
-                    <div
-                      key={item.label}
-                      className="bg-white/5 rounded-xl p-3 text-center"
-                    >
-                      <item.icon className="w-5 h-5 mx-auto mb-2" style={{ color: item.color }} />
-                      <p className="text-xs text-white/50 mb-1">{item.label}</p>
-                      <p className="text-sm font-medium">{item.value}</p>
-                    </div>
-                  ))}
-                </div>
-                <button
-                  onClick={() => navigate('/astro')}
-                  className="w-full mt-4 py-3 bg-cosmic-red/10 border border-cosmic-red/30 text-cosmic-red rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-cosmic-red/20 transition-colors"
-                >
-                  Voir mon thème complet
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-
-              {/* Photos Section */}
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-5">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="font-bold flex items-center gap-2">
-                    <ImageIcon className="w-4 h-4 text-cosmic-red" />
-                    Photos
-                  </h3>
-                  <span className="text-xs text-white/40">
-                    {profile.photos?.length || 0}/{isPremium ? (isElite ? 20 : 10) : 5} photos
-                  </span>
-                </div>
-                <div className="grid grid-cols-3 gap-2">
-                  {[...Array(6)].map((_, i) => {
-                    const photo = profile.photos?.[i];
-                    return (
-                      <div
-                        key={i}
-                        className="aspect-square rounded-xl overflow-hidden bg-white/5 flex items-center justify-center border border-white/10"
-                      >
-                        {photo ? (
-                          <img src={photo.url} alt="" className="w-full h-full object-cover" />
-                        ) : (
-                          <Plus className="w-6 h-6 text-white/20" />
-                        )}
-                      </div>
-                    );
-                  })}
                 </div>
               </div>
-
-              {/* Subscription CTA */}
-              {!isPremium && (
-                <motion.div
-                  className="bg-gradient-to-r from-cosmic-red/20 to-pink-500/20 border border-cosmic-red/30 rounded-2xl p-5 cursor-pointer"
-                  whileHover={{ scale: 1.02 }}
-                  onClick={() => navigate('/subscription')}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 bg-cosmic-red rounded-2xl flex items-center justify-center">
-                      <Crown className="w-7 h-7 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-bold mb-1">Passe Premium</h3>
-                      <p className="text-sm text-white/60">Débloque toutes les fonctionnalités</p>
-                    </div>
-                    <ChevronRight className="w-5 h-5 text-white/40" />
-                  </div>
-                </motion.div>
-              )}
-            </motion.div>
-          ) : (
-            <motion.div
-              key="settings"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="space-y-4"
-            >
-              {/* Account Settings */}
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden">
-                <h3 className="font-bold px-5 py-4 border-b border-white/10">Compte</h3>
-
-                <button
-                  onClick={() => navigate('/subscription')}
-                  className="w-full px-5 py-4 flex items-center justify-between hover:bg-white/5 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-cosmic-red/20 rounded-xl flex items-center justify-center">
-                      <Crown className="w-5 h-5 text-cosmic-red" />
-                    </div>
-                    <div className="text-left">
-                      <p className="font-medium">Mon Abonnement</p>
-                      <p className="text-xs text-white/50">
-                        {isElite ? 'Elite' : isPremium ? 'Premium' : 'Gratuit'}
-                      </p>
-                    </div>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-white/40" />
-                </button>
-
-                <button className="w-full px-5 py-4 flex items-center justify-between hover:bg-white/5 transition-colors border-t border-white/10">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
-                      <Shield className="w-5 h-5 text-white/60" />
-                    </div>
-                    <div className="text-left">
-                      <p className="font-medium">Confidentialité</p>
-                      <p className="text-xs text-white/50">Gérer tes données</p>
-                    </div>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-white/40" />
-                </button>
-              </div>
-
-              {/* Preferences */}
-              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden">
-                <h3 className="font-bold px-5 py-4 border-b border-white/10">Préférences</h3>
-
-                <div className="px-5 py-4 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
-                      <Heart className="w-5 h-5 text-pink-500" />
-                    </div>
-                    <div>
-                      <p className="font-medium">Je recherche</p>
-                      <p className="text-xs text-white/50">{profile.looking_for?.join(', ') || 'Non défini'}</p>
-                    </div>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-white/40" />
-                </div>
-
-                <div className="px-5 py-4 flex items-center justify-between border-t border-white/10">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
-                      <MapPin className="w-5 h-5 text-blue-400" />
-                    </div>
-                    <div>
-                      <p className="font-medium">Localisation</p>
-                      <p className="text-xs text-white/50">{profile.current_city || 'Non définie'}</p>
-                    </div>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-white/40" />
-                </div>
-              </div>
-
-              {/* Logout */}
               <button
-                onClick={handleLogout}
-                className="w-full bg-red-500/10 border border-red-500/30 text-red-400 rounded-2xl p-4 flex items-center justify-center gap-2 font-medium hover:bg-red-500/20 transition-colors"
+                onClick={() => fileInputRef.current?.click()}
+                className="absolute -bottom-1 -right-1 w-7 h-7 bg-cosmic-red rounded-full flex items-center justify-center shadow-lg"
+                disabled={uploadingPhoto}
               >
-                <LogOut className="w-5 h-5" />
-                Déconnexion
+                {uploadingPhoto ? (
+                  <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <Camera className="w-3.5 h-3.5 text-white" />
+                )}
               </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoUpload}
+                className="hidden"
+              />
+            </div>
 
-              {/* Version */}
-              <p className="text-center text-xs text-white/30 pt-4">
-                Astraloves v2.0 • Made with ❤️
+            {/* Info */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <h2 className="text-xl font-bold truncate">{profile.first_name}</h2>
+                <span className="text-lg">{zodiacSymbol}</span>
+              </div>
+              <p className="text-sm text-white/50 mb-2">
+                {getZodiacFr(profile.sun_sign)} • {profile.current_city || 'Localisation non définie'}
               </p>
-            </motion.div>
+              {/* Mini Stats */}
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1">
+                  <Heart className="w-3.5 h-3.5 text-pink-500" />
+                  <span className="text-xs text-white/60">0 matchs</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Zap className="w-3.5 h-3.5 text-cosmic-red" />
+                  <span className="text-xs text-white/60">{profileCompletion}%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Completion bar */}
+          {profileCompletion < 100 && (
+            <div className="mt-4 pt-3 border-t border-white/5">
+              <div className="flex justify-between items-center mb-1.5">
+                <span className="text-xs text-white/40">Profil incomplet</span>
+                <span className="text-xs text-cosmic-red">{profileCompletion}%</span>
+              </div>
+              <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${profileCompletion}%` }}
+                  className="h-full bg-cosmic-red rounded-full"
+                />
+              </div>
+            </div>
           )}
-        </AnimatePresence>
+        </div>
+
+        {/* Astro Signs - Inline */}
+        <div className="bg-[#1c1c1e] rounded-2xl p-3">
+          <div className="flex items-center justify-between">
+            {[
+              { icon: '☀️', label: 'Soleil', value: profile.sun_sign },
+              { icon: '🌙', label: 'Lune', value: profile.moon_sign },
+              { icon: '↗️', label: 'Ascendant', value: profile.ascendant_sign },
+            ].map((item, i) => (
+              <div key={item.label} className="flex-1 text-center">
+                <div className="flex items-center justify-center gap-1.5 mb-0.5">
+                  <span className="text-sm">{item.icon}</span>
+                  <span className="text-[11px] text-white/40 uppercase tracking-wide">{item.label}</span>
+                </div>
+                <p className="text-sm font-medium">{getZodiacFr(item.value)}</p>
+                {i < 2 && <div className="absolute right-0 top-1/2 -translate-y-1/2 w-px h-6 bg-white/10" />}
+              </div>
+            ))}
+          </div>
+          <button
+            onClick={() => navigate('/astro')}
+            className="w-full mt-3 py-2 bg-white/5 rounded-xl text-xs text-white/60 hover:bg-white/10 transition-colors flex items-center justify-center gap-1"
+          >
+            <Star className="w-3 h-3" />
+            Voir thème astral complet
+          </button>
+        </div>
+
+        {/* Bio - Compact */}
+        <div className="bg-[#1c1c1e] rounded-2xl p-4">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-xs text-white/40 uppercase tracking-wide flex items-center gap-1.5">
+              <Sparkles className="w-3 h-3" />
+              Bio
+            </span>
+            <button
+              onClick={() => isEditing ? handleSaveBio() : setIsEditing(true)}
+              className="text-cosmic-red text-xs font-medium flex items-center gap-1"
+            >
+              {isEditing ? <Check className="w-3 h-3" /> : <Edit3 className="w-3 h-3" />}
+              {isEditing ? 'Sauvegarder' : 'Modifier'}
+            </button>
+          </div>
+          {isEditing ? (
+            <div className="space-y-2">
+              <textarea
+                value={editedBio}
+                onChange={(e) => setEditedBio(e.target.value)}
+                placeholder="Décris-toi..."
+                className="w-full px-3 py-2 bg-[#2c2c2e] border border-white/10 rounded-xl resize-none text-sm focus:border-cosmic-red focus:outline-none"
+                rows={3}
+                maxLength={300}
+              />
+              <div className="flex justify-between">
+                <span className="text-[10px] text-white/30">{editedBio.length}/300</span>
+                <button
+                  onClick={() => { setIsEditing(false); setEditedBio(profile.bio || ''); }}
+                  className="text-white/40 text-xs"
+                >
+                  Annuler
+                </button>
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-white/70 leading-relaxed">
+              {profile.bio || 'Ajoute une bio pour te présenter...'}
+            </p>
+          )}
+        </div>
+
+        {/* Photos Grid - Compact */}
+        <div className="bg-[#1c1c1e] rounded-2xl p-4">
+          <div className="flex justify-between items-center mb-3">
+            <span className="text-xs text-white/40 uppercase tracking-wide flex items-center gap-1.5">
+              <ImageIcon className="w-3 h-3" />
+              Photos
+            </span>
+            <span className="text-[10px] text-white/30">
+              {profile.photos?.length || 0}/{isPremium ? (isElite ? 20 : 10) : 5}
+            </span>
+          </div>
+          <div className="grid grid-cols-4 gap-1.5">
+            {[...Array(4)].map((_, i) => {
+              const photo = profile.photos?.[i];
+              return (
+                <div
+                  key={i}
+                  className="aspect-square rounded-lg overflow-hidden bg-[#2c2c2e] flex items-center justify-center"
+                >
+                  {photo ? (
+                    <img src={photo.url} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <Plus className="w-4 h-4 text-white/20" />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Premium CTA */}
+        {!isPremium && (
+          <motion.button
+            onClick={() => navigate('/subscription')}
+            className="w-full bg-gradient-to-r from-cosmic-red/20 to-pink-500/20 border border-cosmic-red/30 rounded-2xl p-3 flex items-center gap-3"
+            whileTap={{ scale: 0.98 }}
+          >
+            <div className="w-10 h-10 bg-cosmic-red rounded-xl flex items-center justify-center flex-shrink-0">
+              <Crown className="w-5 h-5 text-white" />
+            </div>
+            <div className="flex-1 text-left">
+              <p className="text-sm font-semibold">Passe Premium</p>
+              <p className="text-xs text-white/50">Débloque toutes les fonctionnalités</p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-white/40" />
+          </motion.button>
+        )}
+
+        {/* Settings List - iOS Style */}
+        <div className="bg-[#1c1c1e] rounded-2xl overflow-hidden divide-y divide-white/5">
+          <SettingsRow
+            icon={<Crown className="w-4 h-4" />}
+            iconBg={isPremium ? 'bg-cosmic-red' : 'bg-amber-500'}
+            label="Abonnement"
+            value={isElite ? 'Elite' : isPremium ? 'Premium' : 'Gratuit'}
+            onClick={() => navigate('/subscription')}
+          />
+          <SettingsRow
+            icon={<Heart className="w-4 h-4" />}
+            iconBg="bg-pink-500"
+            label="Je recherche"
+            value={profile.looking_for?.join(', ') || 'Non défini'}
+          />
+          <SettingsRow
+            icon={<MapPin className="w-4 h-4" />}
+            iconBg="bg-blue-500"
+            label="Localisation"
+            value={profile.current_city || 'Non définie'}
+          />
+          <SettingsRow
+            icon={<Bell className="w-4 h-4" />}
+            iconBg="bg-purple-500"
+            label="Notifications"
+            value="Activées"
+          />
+        </div>
+
+        {/* More Options */}
+        <div className="bg-[#1c1c1e] rounded-2xl overflow-hidden divide-y divide-white/5">
+          <SettingsRow
+            icon={<Shield className="w-4 h-4" />}
+            iconBg="bg-green-500"
+            label="Confidentialité"
+          />
+          <SettingsRow
+            icon={<HelpCircle className="w-4 h-4" />}
+            iconBg="bg-gray-500"
+            label="Aide & Support"
+          />
+        </div>
+
+        {/* Logout */}
+        <button
+          onClick={handleLogout}
+          className="w-full bg-[#1c1c1e] rounded-2xl p-3 text-red-500 text-sm font-medium flex items-center justify-center gap-2 active:bg-[#2c2c2e]"
+        >
+          <LogOut className="w-4 h-4" />
+          Déconnexion
+        </button>
+
+        {/* Version */}
+        <p className="text-center text-[10px] text-white/20 pb-4">
+          Astraloves v2.0
+        </p>
       </div>
     </div>
+  );
+}
+
+// Compact Settings Row Component
+function SettingsRow({
+  icon,
+  iconBg,
+  label,
+  value,
+  onClick
+}: {
+  icon: React.ReactNode;
+  iconBg: string;
+  label: string;
+  value?: string;
+  onClick?: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="w-full px-3 py-2.5 flex items-center gap-3 active:bg-white/5 transition-colors"
+    >
+      <div className={`w-7 h-7 ${iconBg} rounded-lg flex items-center justify-center text-white flex-shrink-0`}>
+        {icon}
+      </div>
+      <span className="flex-1 text-left text-sm">{label}</span>
+      {value && <span className="text-xs text-white/40 mr-1">{value}</span>}
+      <ChevronRight className="w-4 h-4 text-white/20" />
+    </button>
   );
 }
 
