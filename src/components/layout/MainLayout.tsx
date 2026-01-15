@@ -4,10 +4,10 @@ import { Sparkles, MessageCircle, Star, User } from 'lucide-react';
 
 export default function MainLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen cosmic-gradient">
-      <main className="pb-20 md:pb-0">{children}</main>
-      
-      <nav className="fixed bottom-0 left-0 right-0 bg-cosmic-bg/95 backdrop-blur-xl border-t border-white/10 md:hidden">
+    <div className="h-screen flex flex-col cosmic-gradient">
+      <main className="flex-1 overflow-hidden">{children}</main>
+
+      <nav className="flex-shrink-0 bg-cosmic-bg/95 backdrop-blur-xl border-t border-white/10 md:hidden">
         <div className="flex justify-around items-center h-16">
           <NavLink to="/univers" className={({ isActive }) => `flex flex-col items-center gap-1 px-4 ${isActive ? 'text-cosmic-purple' : 'text-white/60'}`}>
             <Sparkles className="w-6 h-6" />
