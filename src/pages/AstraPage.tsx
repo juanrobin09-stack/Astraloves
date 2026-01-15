@@ -4,6 +4,7 @@ import { useSubscriptionStore } from '@/store/subscriptionStore';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/config/supabase';
 import { astraService } from '@/services/astra/astraService';
+import { memoryService } from '@/services/astra/memoryService';
 import { AstraHeader } from '@/components/astra/AstraHeader';
 import { SessionContextCard } from '@/components/astra/SessionContextCard';
 import { AstraChatBubble } from '@/components/astra/AstraChatBubble';
@@ -61,7 +62,7 @@ export default function AstraPage() {
     queryKey: ['astra-memory', profile?.id],
     queryFn: async () => {
       if (!profile) return [];
-      return astraService.getMemories(profile.id);
+      return memoryService.getMemories(profile.id);
     },
     enabled: !!profile,
   });
@@ -86,13 +87,8 @@ export default function AstraPage() {
 
       setIsTyping(true);
 
-      const response = await astraService.generateResponse(
-        profile.id,
-        content,
-        profile,
-        messages || [],
-        memories || []
-      );
+      // generateResponse builds its own context internally using userId
+      const response = await astraService.generateResponse(profile.id, content);
 
       await supabase.from('astra_messages').insert({
         conversation_id: conversation.id,

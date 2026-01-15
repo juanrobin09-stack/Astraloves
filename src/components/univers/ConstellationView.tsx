@@ -29,7 +29,7 @@ export default function ConstellationView() {
     queryKey: ['matches', profile?.id],
     queryFn: async () => {
       if (!profile) return [];
-      return matchingService.findMatches(profile.id, profile, visibleLimit === -1 ? 100 : visibleLimit);
+      return matchingService.getPotentialMatches(profile.id, visibleLimit === -1 ? 100 : visibleLimit);
     },
     enabled: !!profile,
   });
