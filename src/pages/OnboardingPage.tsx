@@ -15,6 +15,7 @@ export default function OnboardingPage() {
   const [firstName, setFirstName] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [birthTime, setBirthTime] = useState('12:00');
+  const [birthPlace, setBirthPlace] = useState('');
 
   // Step 2: Genre et préférences
   const [gender, setGender] = useState<'man' | 'woman' | 'non-binary'>('man');
@@ -24,8 +25,8 @@ export default function OnboardingPage() {
   const [bio, setBio] = useState('');
 
   const handleStep1 = () => {
-    if (!firstName || !birthDate) {
-      toast.error('Veuillez remplir tous les champs');
+    if (!firstName || !birthDate || !birthPlace) {
+      toast.error('Veuillez remplir tous les champs obligatoires');
       return;
     }
     setStep(2);
@@ -50,6 +51,7 @@ export default function OnboardingPage() {
         first_name: firstName,
         birth_date: birthDate,
         birth_time: birthTime,
+        birth_place: birthPlace,
         gender,
         looking_for: lookingFor,
         bio: bio || null,
@@ -161,6 +163,19 @@ export default function OnboardingPage() {
                   value={birthTime}
                   onChange={(e) => setBirthTime(e.target.value)}
                   className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-red-500 focus:outline-none text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Lieu de naissance
+                </label>
+                <input
+                  type="text"
+                  value={birthPlace}
+                  onChange={(e) => setBirthPlace(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-red-500 focus:outline-none text-white"
+                  placeholder="Paris, France"
                 />
               </div>
 
