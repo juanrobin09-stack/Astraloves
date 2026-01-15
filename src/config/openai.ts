@@ -4,16 +4,20 @@
 
 import OpenAI from 'openai';
 
-const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+const apiKey = import.meta.env.VITE_OPENAI_API_KEY || '';
 
-if (!apiKey) {
-  throw new Error('Missing OpenAI API key');
+export const isOpenAIConfigured = !!apiKey;
+
+if (!isOpenAIConfigured) {
+  console.warn('⚠️ OpenAI non configuré. Ajoutez VITE_OPENAI_API_KEY dans .env.local pour activer ASTRA');
 }
 
-export const openai = new OpenAI({
-  apiKey,
-  dangerouslyAllowBrowser: true,
-});
+export const openai = isOpenAIConfigured
+  ? new OpenAI({
+      apiKey,
+      dangerouslyAllowBrowser: true,
+    })
+  : null;
 
 export const ASTRA_MODEL = 'gpt-4-turbo-preview';
 export const ASTRA_MAX_TOKENS = 500;

@@ -2,7 +2,7 @@
 // ASTRA SERVICE - IA conversationnelle
 // ═══════════════════════════════════════════════════════════════════════
 
-import { openai, ASTRA_MODEL, ASTRA_MAX_TOKENS, ASTRA_TEMPERATURE } from '@/config/openai';
+import { openai, isOpenAIConfigured, ASTRA_MODEL, ASTRA_MAX_TOKENS, ASTRA_TEMPERATURE } from '@/config/openai';
 import { supabase, handleSupabaseError } from '@/config/supabase';
 import type { AstraMessage, AstraConversation, AstraChatContext, SessionType, SessionTone } from '@/types';
 import { memoryService } from './memoryService';
@@ -133,6 +133,10 @@ export const astraService = {
   },
 
   async generateResponse(userId: string, userMessage: string): Promise<string> {
+    if (!isOpenAIConfigured || !openai) {
+      return "ASTRA n'est pas encore éveillée. Configure la clé OpenAI pour me réveiller.";
+    }
+
     const context = await this.buildContext(userId);
 
     const contextPrompt = `
