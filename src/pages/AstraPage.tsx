@@ -271,35 +271,34 @@ export default function AstraPage() {
         )}
       </AnimatePresence>
 
-      {/* Suggestions - Only show at start */}
-      <AnimatePresence>
-        {messages.length <= 1 && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="px-4 pb-2"
-          >
-            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-              {suggestions.map((text, i) => (
-                <motion.button
-                  key={i}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                  onClick={() => setInput(text)}
-                  className="flex-shrink-0 px-4 py-2 bg-transparent hover:bg-white/5 text-[14px] text-white/70 hover:text-white rounded-full transition-colors border border-white/20 hover:border-white/40"
-                >
-                  {text}
-                </motion.button>
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* Input area - iMessage style */}
       <div className="flex-shrink-0 px-4 py-3 bg-[#1c1c1e]/95 backdrop-blur-xl border-t border-white/10">
+        {/* Suggestions - Only show at start */}
+        <AnimatePresence>
+          {messages.length <= 1 && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mb-3"
+            >
+              <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                {suggestions.map((text, i) => (
+                  <motion.button
+                    key={i}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.1 }}
+                    onClick={() => setInput(text)}
+                    className="flex-shrink-0 px-3 py-1.5 text-[13px] text-white/70 hover:text-white rounded-full transition-colors border border-white/20 hover:border-white/40"
+                  >
+                    {text}
+                  </motion.button>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
         {/* Quota warning */}
         {quotaRemaining <= 3 && quotaRemaining > 0 && (
           <div className="mb-2 text-center">
