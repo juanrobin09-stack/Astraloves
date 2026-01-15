@@ -2,7 +2,7 @@
 // AUTH SERVICE
 // ═══════════════════════════════════════════════════════════════════════
 
-import { supabase, handleSupabaseError } from '@/config/supabase';
+import { supabase } from '@/config/supabase';
 import type { Profile, Subscription } from '@/types';
 
 export interface SignUpData {
@@ -22,7 +22,7 @@ export const authService = {
       password: data.password,
     });
 
-    if (error) handleSupabaseError(error);
+    if (error) throw error;
     return authData;
   },
 
@@ -32,64 +32,90 @@ export const authService = {
       password: data.password,
     });
 
-    if (error) handleSupabaseError(error);
+    if (error) throw error;
     return authData;
   },
 
   async signOut() {
     const { error } = await supabase.auth.signOut();
-    if (error) handleSupabaseError(error);
+    if (error) console.warn('Sign out error:', error.message);
   },
 
   async getCurrentUser() {
     try {
       const { data: { user }, error } = await supabase.auth.getUser();
-      // Si pas de session, c'est normal, retourner null
-      if (error && error.message.includes('session')) {
+      if (error) {
+        // Session errors are normal when not logged in
         return null;
       }
-      if (error) handleSupabaseError(error);
       return user;
     } catch (error) {
-      // Gérer gracieusement l'absence de session
-      console.log('No active session');
       return null;
     }
   },
 
   async getProfile(userId: string): Promise<Profile | null> {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
 
-    if (error && error.code !== 'PGRST116') handleSupabaseError(error);
-    return data;
+      // PGRST116 = no rows returned (normal for new users)
+      // 406 = Not Acceptable (RLS policy issue)
+      if (error) {
+        if (error.code !== 'PGRST116') {
+          console.warn('Profile fetch warning:', error.code, error.message);
+        }
+        return null;
+      }
+      return data;
+    } catch (err) {
+      console.warn('Profile fetch failed');
+      return null;
+    }
   },
 
   async updateProfile(userId: string, updates: Partial<Profile>) {
-    const { data, error } = await supabase
-      .from('profiles')
-      .update(updates)
-      .eq('id', userId)
-      .select()
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', userId)
+        .select()
+        .single();
 
-    if (error) handleSupabaseError(error);
-    return data;
+      if (error) {
+        console.error('Profile update error:', error.message);
+        throw error;
+      }
+      return data;
+    } catch (err) {
+      throw err;
+    }
   },
 
   async getSubscription(userId: string): Promise<Subscription | null> {
-    const { data, error } = await supabase
-      .from('subscriptions')
-      .select('*')
-      .eq('user_id', userId)
-      .or('ends_at.is.null,ends_at.gt.now()')
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('user_id', userId)
+        .or('ends_at.is.null,ends_at.gt.now()')
+        .single();
 
-    if (error && error.code !== 'PGRST116') handleSupabaseError(error);
-    return data;
+      if (error) {
+        if (error.code !== 'PGRST116') {
+          console.warn('Subscription fetch warning:', error.code);
+        }
+        return null;
+      }
+      return data;
+    } catch (err) {
+      console.warn('Subscription fetch failed');
+      return null;
+    }
   },
 
   onAuthStateChange(callback: (user: any) => void) {
