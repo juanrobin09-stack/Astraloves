@@ -288,7 +288,7 @@ export default function AstraPage() {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.1 }}
                   onClick={() => setInput(text)}
-                  className="flex-shrink-0 px-4 py-2 bg-[#2c2c2e] hover:bg-[#3c3c3e] text-[14px] text-white rounded-full transition-colors border border-white/5"
+                  className="flex-shrink-0 px-4 py-2 bg-transparent hover:bg-white/5 text-[14px] text-white/70 hover:text-white rounded-full transition-colors border border-white/20 hover:border-white/40"
                 >
                   {text}
                 </motion.button>
