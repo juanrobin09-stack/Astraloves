@@ -43,6 +43,18 @@ const ZODIAC_SYMBOLS: Record<string, string> = {
   sagittarius: '♐', capricorn: '♑', aquarius: '♒', pisces: '♓',
 };
 
+// French zodiac names
+const ZODIAC_NAMES_FR: Record<string, string> = {
+  aries: 'Bélier', taurus: 'Taureau', gemini: 'Gémeaux', cancer: 'Cancer',
+  leo: 'Lion', virgo: 'Vierge', libra: 'Balance', scorpio: 'Scorpion',
+  sagittarius: 'Sagittaire', capricorn: 'Capricorne', aquarius: 'Verseau', pisces: 'Poissons',
+};
+
+// Helper to get French zodiac name
+const getZodiacNameFr = (sign: string): string => {
+  return ZODIAC_NAMES_FR[sign?.toLowerCase()] || sign || 'Inconnu';
+};
+
 // ASTRA Tips based on zodiac compatibility
 const ASTRA_TIPS: Record<string, string[]> = {
   high: [
@@ -225,7 +237,7 @@ function ProfileCard({
           </div>
 
           <p className="text-white/70 text-sm mb-3">
-            ☀️ {profile.sun_sign} • 🌙 {profile.moon_sign} • ↗️ {profile.ascendant_sign}
+            ☀️ {getZodiacNameFr(profile.sun_sign)} • 🌙 {getZodiacNameFr(profile.moon_sign)} • ↗️ {getZodiacNameFr(profile.ascendant_sign)}
           </p>
 
           {profile.birth_city && (
@@ -294,7 +306,7 @@ function MatchCard({
             <span>{zodiacSymbol}</span>
           </div>
           <p className="text-sm text-white/50 truncate">
-            {profile.compatibility}% compatible • {profile.sun_sign}
+            {profile.compatibility}% compatible • {getZodiacNameFr(profile.sun_sign)}
           </p>
         </div>
 
@@ -366,7 +378,7 @@ function MatchDetailModal({
           </div>
 
           <p className="text-white/60 text-sm mb-4">
-            ☀️ {profile.sun_sign} • 🌙 {profile.moon_sign} • ↗️ {profile.ascendant_sign}
+            ☀️ {getZodiacNameFr(profile.sun_sign)} • 🌙 {getZodiacNameFr(profile.moon_sign)} • ↗️ {getZodiacNameFr(profile.ascendant_sign)}
           </p>
 
           {/* Compatibility */}
@@ -664,8 +676,8 @@ export default function ConstellationView() {
                   )}
                 </div>
               ) : viewMode === 'cards' ? (
-                <div className="absolute inset-0 flex items-center justify-center p-4">
-                  <div className="relative w-full max-w-sm h-[65vh] max-h-[550px]">
+                <div className="h-full flex items-center justify-center p-4 pb-2">
+                  <div className="relative w-full max-w-[340px] h-[60vh] min-h-[400px] max-h-[520px]">
                     <AnimatePresence>
                       {activeMatches.slice(currentIndex, currentIndex + 3).reverse().map((match, i, arr) => (
                         <ProfileCard
@@ -793,7 +805,7 @@ export default function ConstellationView() {
 
       {/* Action Buttons (Cards mode only, Discover tab) */}
       {activeTab === 'discover' && viewMode === 'cards' && activeMatches.length > 0 && (
-        <div className="flex-shrink-0 px-6 py-4 flex items-center justify-center gap-4">
+        <div className="flex-shrink-0 px-4 py-3 flex items-center justify-center gap-3 bg-black">
           {isPremium && (
             <motion.button
               whileHover={{ scale: 1.1 }}
@@ -863,11 +875,13 @@ export default function ConstellationView() {
 
       {/* Quota indicator (FREE, Discover) */}
       {tier === 'free' && activeTab === 'discover' && viewMode === 'cards' && activeMatches.length > 0 && (
-        <div className="absolute bottom-20 left-1/2 -translate-x-1/2 px-4 py-2 bg-white/10 backdrop-blur-xl rounded-full">
-          <p className="text-xs text-white/60">
-            {Math.min(currentIndex + 1, 5)}/5 •{' '}
-            <span className="text-cosmic-red">Premium pour plus</span>
-          </p>
+        <div className="flex-shrink-0 pb-2 flex justify-center bg-black">
+          <div className="px-4 py-2 bg-white/10 rounded-full">
+            <p className="text-xs text-white/60">
+              {Math.min(currentIndex + 1, 5)}/5 •{' '}
+              <span className="text-cosmic-red">Premium pour plus</span>
+            </p>
+          </div>
         </div>
       )}
     </div>
